@@ -181,18 +181,14 @@ export default function InfoHotspot({ texturePath, position, onComplete }: InfoH
                 onClick={handleClick}
                 renderOrder={stateRef.current.isActive ? 1000 : 0}
             >
-                <meshStandardMaterial 
+                <meshBasicMaterial 
                     transparent={true}
-                    opacity={0.9}
+                    opacity={1.0}
                     side={THREE.DoubleSide}
-                    roughness={0.0}
-                    metalness={0.0}
-                    alphaTest={0.1}
+                    alphaTest={0.5}
                     depthTest={!stateRef.current.isActive}
                     depthWrite={!stateRef.current.isActive}
-                    flatShading={true}
-                    emissive={0x000000}
-                    emissiveIntensity={0}
+                    toneMapped={false}
                 />
             </mesh>
         </group>

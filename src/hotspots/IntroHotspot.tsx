@@ -48,7 +48,14 @@ const IntroHotspot = ({
         {/* Main intro texture */}
         <mesh ref={groupRef} position={position}>
             <planeGeometry args={[2, 0.75]} />
-            <meshBasicMaterial map={texture} transparent={true} opacity={0.9} />
+            <meshBasicMaterial 
+                map={texture} 
+                transparent={true} 
+                opacity={1.0}
+                side={THREE.DoubleSide}
+                alphaTest={0.5}
+                toneMapped={false}
+            />
         </mesh>
         
         {/* Play button - positioned slightly in front of the main texture */}
@@ -60,7 +67,14 @@ const IntroHotspot = ({
             position={[position[0], position[1] -0.5, position[2] -0.1]}
         >
             <circleGeometry args={[0.2, 32]} />
-            <meshBasicMaterial map={texture2} transparent={true} opacity={1.0} />
+            <meshBasicMaterial 
+                map={texture2} 
+                transparent={true} 
+                opacity={1.0}
+                side={THREE.DoubleSide}
+                alphaTest={0.5}
+                toneMapped={false}
+            />
         </mesh>
         </>
     );

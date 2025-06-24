@@ -28,7 +28,14 @@ const LinkHotspot = ({texturePath, position, onClickBehaviour}: {texturePath: st
         <group ref={groupRef} position={position}>
             <mesh ref={meshRef} onClick={onClickBehaviour} onPointerOver={handleHover} onPointerOut={handleHoverOut}>
                 <planeGeometry args={[1.5, 0.5]} />
-                <meshBasicMaterial map={texture} transparent={true} opacity={0.9} />
+                <meshBasicMaterial 
+                    map={texture} 
+                    transparent={true} 
+                    opacity={1.0}
+                    side={THREE.DoubleSide}
+                    alphaTest={0.5}
+                    toneMapped={false}
+                />
             </mesh>
         </group>
     );

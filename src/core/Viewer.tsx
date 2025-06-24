@@ -145,14 +145,122 @@ const Scene = ({ currentTexturePath, sceneId }: {
     );
 };
 
+// Comprehensive lighting system for optimal color rendering
+const LightingSystem = () => {
+    return (
+        <>
+            {/* Ambient light for overall scene illumination */}
+            <ambientLight 
+                intensity={0.6} 
+                color={0xffffff}
+            />
+            
+            {/* Main directional light for primary illumination */}
+            <directionalLight
+                position={[5, 5, 5]}
+                intensity={1.2}
+                color={0xffffff}
+                castShadow={false}
+            />
+            
+            {/* Secondary directional light for fill lighting */}
+            <directionalLight
+                position={[-3, 3, -3]}
+                intensity={0.5}
+                color={0xffffff}
+                castShadow={false}
+            />
+            
+            {/* Back lighting for InfoHotspots (negative Z positions) */}
+            <directionalLight
+                position={[0, 0, -5]}
+                intensity={1.0}
+                color={0xffffff}
+                castShadow={false}
+            />
+            
+            {/* Left back lighting for InfoHotspots */}
+            <directionalLight
+                position={[-5, 0, -3]}
+                intensity={0.8}
+                color={0xffffff}
+                castShadow={false}
+            />
+            
+            {/* Right back lighting for InfoHotspots */}
+            <directionalLight
+                position={[5, 0, -3]}
+                intensity={0.8}
+                color={0xffffff}
+                castShadow={false}
+            />
+            
+            {/* Top-down light for hotspot illumination */}
+            <directionalLight
+                position={[0, 10, 0]}
+                intensity={1.0}
+                color={0xffffff}
+                castShadow={false}
+            />
+            
+            {/* Front-facing light for hotspot readability */}
+            <directionalLight
+                position={[0, 0, 5]}
+                intensity={0.8}
+                color={0xffffff}
+                castShadow={false}
+            />
+            
+            {/* Subtle hemisphere light for environmental lighting */}
+            <hemisphereLight 
+                intensity={0.3} 
+                groundColor={0x404040}
+                color={0xffffff}
+            />
+        </>
+    );
+};
+
 const Viewer = ({ texturePath, sceneId, children }: { 
     texturePath: string, 
     sceneId?: string,
     children: React.ReactNode 
 }) => {
     return (
-        <Canvas camera={{ position: [0, 0, 2], fov: 90, zoom: 3 }}>
-           <hemisphereLight intensity={0.5} groundColor={0x000000} />
+        <Canvas 
+            camera={{ position: [0, 0, 2], fov: 90, zoom: 3 }}
+            gl={{
+                antialias: true,
+                alpha: false,
+                powerPreference: "high-performance",
+                stencil: false,
+                depth: true,
+                logarithmicDepthBuffer: false
+            }}
+            onCreated={({ gl, scene }) => {
+                // Disable ambient occlusion and reflections
+                gl.toneMapping = THREE.NoToneMapping;
+                gl.outputColorSpace = THREE.SRGBColorSpace;
+                scene.traverse((child) => {
+                    if (child instanceof THREE.Mesh && child.material) {
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(mat => {
+                                mat.envMap = null;
+                                mat.envMapIntensity = 0;
+                                mat.aoMap = null;
+                                mat.aoMapIntensity = 0;
+                            });
+                        } else {
+                            child.material.envMap = null;
+                            child.material.envMapIntensity = 0;
+                            child.material.aoMap = null;
+                            child.material.aoMapIntensity = 0;
+                        }
+                    }
+                });
+            }}
+        >
+            <LightingSystem />
             <OrbitControls />
             <Scene currentTexturePath={texturePath} sceneId={sceneId} />
             {children}
