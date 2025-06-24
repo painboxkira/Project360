@@ -1,54 +1,193 @@
-# React + TypeScript + Vite
+# 360° Panorama Viewer - Hotspot Training Experience
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, interactive 360-degree panorama viewer built with React, Three.js, and TypeScript. This project is designed for immersive training experiences with interactive hotspots, scene transitions, and multimedia content.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **360° Panorama Viewing**: Immersive spherical panorama viewing with smooth camera controls
+- **Interactive Hotspots**: Clickable hotspots with various types (info, questions, scene transitions)
+- **Scene Management**: Seamless transitions between multiple scenes
+- **Audio Integration**: Background audio support with auto-play and loop functionality
+- **Texture Preloading**: Optimized texture loading for smooth scene transitions
+- **Responsive Design**: Full-screen immersive experience
+- **TypeScript Support**: Full type safety and better development experience
+- **VR Ready**: Built with React Three Fiber for potential VR integration
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Frontend**: React 19, TypeScript
+- **3D Graphics**: Three.js, React Three Fiber, React Three Drei
+- **UI Components**: React Three UI Kit
+- **Build Tool**: Vite
+- **Audio**: HTML5 Audio API
+- **Speech Recognition**: React Speech Recognition
+- **Styling**: CSS-in-JS with inline styles
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## 📦 Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd vieweroptimized
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open your browser**
+   Navigate to `http://localhost:5173` to view the application
+
+## 🎮 Usage
+
+### Development
+```bash
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+
+# Run linting
+npm run lint
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Scene Configuration
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+The application loads scene data from `public/complete-scene.json`. Each scene contains:
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+- **Basic Info**: ID, title, panorama image URL
+- **Hotspots**: Interactive elements with positions and behaviors
+- **Audio**: Optional background audio with playback controls
+- **Transitions**: Scene-to-scene navigation
+
+### Hotspot Types
+
+1. **Info Hotspots**: Display information when clicked
+2. **Question Hotspots**: Interactive QCM (multiple choice questions)
+3. **Scene Transition Hotspots**: Navigate to different scenes
+4. **Intro Hotspots**: Welcome messages with character images
+5. **ActivAI Hotspots**: AI-powered interactive feedback
+
+## 📁 Project Structure
+
 ```
+vieweroptimized/
+├── public/
+│   ├── complete-scene.json    # Scene configuration
+│   ├── assets/                # Audio files
+│   ├── personas/              # Character images
+│   ├── scene/                 # Panorama images
+│   └── textures/              # Hotspot textures
+├── src/
+│   ├── core/
+│   │   ├── SceneViewer.tsx    # Main scene management
+│   │   ├── Viewer.tsx         # 3D panorama renderer
+│   │   ├── DataManager.tsx    # Scene data management
+│   │   └── processors/        # Data processing utilities
+│   ├── App.tsx               # Root component
+│   └── main.tsx              # Application entry point
+└── package.json
+```
+
+## 🎯 Key Components
+
+### SceneViewer
+- Manages scene transitions and navigation
+- Handles texture preloading for smooth performance
+- Provides scene selection UI
+
+### Viewer
+- Renders 360° panoramas using Three.js
+- Implements texture caching for memory optimization
+- Provides camera controls and lighting
+
+### DataManager
+- Loads and manages scene data
+- Handles state management for scene switching
+- Provides data subscription system
+
+## 🔧 Configuration
+
+### Scene JSON Structure
+```json
+{
+  "scenes": [
+    {
+      "id": "scene-id",
+      "title": "Scene Title",
+      "panoramaUrl": "./scene/image.jpg",
+      "sphereRadius": 3,
+      "audio": {
+        "path_to_audio": "./assets/audio.mp3",
+        "initial_state": "auto_play",
+        "loop": true,
+        "volume": 0.3
+      },
+      "hotspots": [
+        {
+          "id": "hotspot-id",
+          "title": "Hotspot Title",
+          "type": "info|question|link|intro|activai",
+          "position": [x, y, z],
+          "size": 1.0,
+          "text": "Hotspot content"
+        }
+      ]
+    }
+  ]
+}
+```
+
+## 🎨 Customization
+
+### Adding New Scenes
+1. Add panorama image to `public/scene/`
+2. Add scene configuration to `complete-scene.json`
+3. Configure hotspots with appropriate positions and content
+
+### Custom Hotspots
+- **Info Hotspots**: Use `type: "info"` for informational content
+- **Questions**: Use `type: "question"` with `choices` array for QCM
+- **Scene Links**: Use `type: "link"` with `targetScene` for navigation
+- **Character Intros**: Use `type: "intro"` with character images
+
+### Styling
+The application uses inline styles for immediate visual feedback. Customize colors, positioning, and animations by modifying the style objects in components.
+
+## 🚀 Performance Optimizations
+
+- **Texture Caching**: Automatic texture preloading and memory management
+- **Lazy Loading**: Scenes load on demand
+- **Memory Cleanup**: Automatic disposal of unused textures
+- **Optimized Rendering**: Efficient Three.js scene management
+
+## 🔮 Future Enhancements
+
+- VR/AR support with React Three XR
+- Advanced audio spatialization
+- Multi-user collaborative features
+- Analytics and progress tracking
+- Mobile optimization
+- Accessibility improvements
+
+## 📝 License
+
+This project is private and proprietary.
+
+## 🤝 Contributing
+
+This is a private project. For internal contributions, please follow the existing code style and add appropriate tests for new features.
+
+## 📞 Support
+
+For technical support or questions about the project, please contact the development team.
