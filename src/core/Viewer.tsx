@@ -1,5 +1,5 @@
 import  { useState, useEffect, useRef} from 'react';
-import { Canvas, useThree, useFrame } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -19,28 +19,36 @@ const cleanupTextureCache = () => {
             texture.dispose();
             textureCache.delete(key);
         });
-        
-        console.log(`Cleaned up ${toRemove.length} textures from cache`);
     }
 };
 
 // Preload texture function
 const preloadTexture = async (texturePath: string): Promise<THREE.Texture> => {
+    if (!texturePath || texturePath.trim() === '') {
+        throw new Error('Texture path cannot be empty');
+    }
+    
     if (textureCache.has(texturePath)) {
         return textureCache.get(texturePath)!;
     }
 
     const loader = new THREE.TextureLoader();
     return new Promise((resolve, reject) => {
+        console.log(`Loading texture: ${texturePath}`);
         loader.load(
             texturePath,
             (texture) => {
+                console.log(`Successfully loaded texture: ${texturePath}`);
                 textureCache.set(texturePath, texture);
                 cleanupTextureCache(); // Clean up if cache gets too large
                 resolve(texture);
             },
             undefined,
-            reject
+            (error: unknown) => {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                console.error(`Failed to load texture: ${texturePath}`, error);
+                reject(new Error(`Failed to load texture: ${texturePath} - ${errorMessage}`));
+            }
         );
     });
 };
@@ -57,7 +65,6 @@ export const clearTextureCache = () => {
         texture.dispose();
     });
     textureCache.clear();
-    console.log('Texture cache cleared');
 };
 
 // Scene component that switches textures
@@ -67,12 +74,15 @@ const Scene = ({ currentTexturePath, sceneId }: {
 }) => {
     const meshRef = useRef<THREE.Mesh>(null);
     const [material, setMaterial] = useState<THREE.MeshBasicMaterial | null>(null);
-    const { camera } = useThree();
-    const raycasterRef = useRef<THREE.Raycaster>(new THREE.Raycaster());
-    const lastSceneIdRef = useRef<string | undefined>(sceneId);
 
     useEffect(() => {
         const updateTexture = async () => {
+            // Don't try to load empty texture paths
+            if (!currentTexturePath || currentTexturePath.trim() === '') {
+                console.warn('Skipping texture load for empty path');
+                return;
+            }
+
             try {
                 // Use cached texture if available, otherwise load it
                 let texture: THREE.Texture;
@@ -91,7 +101,15 @@ const Scene = ({ currentTexturePath, sceneId }: {
                 
                 setMaterial(newMaterial);
             } catch (error) {
-                console.error('Failed to load texture:', error);
+                console.error(`Failed to load texture: ${currentTexturePath}`, error);
+                // Create a fallback material with a visible color to indicate loading failure
+                const fallbackMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xff0000, // Red color to indicate error
+                    side: THREE.BackSide,
+                    transparent: false,
+                    depthWrite: false
+                });
+                setMaterial(fallbackMaterial);
             }
         };
 
@@ -106,30 +124,6 @@ const Scene = ({ currentTexturePath, sceneId }: {
             }
         };
     }, [material]);
-
-    // Reset raycast when scene changes
-    useEffect(() => {
-        if (sceneId !== lastSceneIdRef.current) {
-            console.log('=== Scene Changed - Resetting Raycast ===');
-            console.log('Previous scene:', lastSceneIdRef.current);
-            console.log('New scene:', sceneId);
-            console.log('========================================');
-            
-            // Reset raycaster
-            raycasterRef.current = new THREE.Raycaster();
-            lastSceneIdRef.current = sceneId;
-        }
-    }, [sceneId]);
-
-    // Dynamic raycasting on every frame
-    useFrame(() => {
-        if (meshRef.current && camera) {
-            const targetObjects = [meshRef.current];
-            
-            // Perform raycast with debug logging
-            cameraRaycast(targetObjects, raycasterRef.current, camera);
-        }
-    });
 
     return (
         <mesh 
@@ -151,20 +145,6 @@ const Scene = ({ currentTexturePath, sceneId }: {
     );
 };
 
-// Function to perform camera raycasting with debug logging
-function cameraRaycast(targetObjects: THREE.Object3D[], raycaster: THREE.Raycaster, camera: THREE.Camera) {
-    const direction = new THREE.Vector3();
-    camera.getWorldDirection(direction);
-    
-    // Set raycaster from camera position in the direction it's facing
-    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-    
-    // Perform the raycast
-    const intersects = raycaster.intersectObjects(targetObjects, true);
-    
-    return intersects;
-}
-
 const Viewer = ({ texturePath, sceneId, children }: { 
     texturePath: string, 
     sceneId?: string,
@@ -172,8 +152,7 @@ const Viewer = ({ texturePath, sceneId, children }: {
 }) => {
     return (
         <Canvas camera={{ position: [0, 0, 2], fov: 90, zoom: 3 }}>
-            <ambientLight intensity={0.5} />
-            <directionalLight position={[1, 1, 1]} intensity={1} />
+           <hemisphereLight intensity={0.5} groundColor={0x000000} />
             <OrbitControls />
             <Scene currentTexturePath={texturePath} sceneId={sceneId} />
             {children}

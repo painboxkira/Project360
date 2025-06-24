@@ -40,20 +40,10 @@ export class DataManager {
         try {
             this.setState({ isLoading: true, error: null });
 
-            // Load raw data
             const rawData = await this.loadJsonData(jsonPath);
-            console.log('DataManager: Loaded raw data:', rawData);
-            
-            // Process scenes to get IDs and panorama URLs
             const processedScenes = SceneProcessor.processScenes(rawData);
             const sceneIds = SceneProcessor.getSceneIds(rawData);
-            
-            console.log('DataManager: Processed scenes:', processedScenes);
-            console.log('DataManager: Scene IDs:', sceneIds);
-
-            // Set current scene to first valid scene
             const currentScene = processedScenes.length > 0 ? processedScenes[0] : null;
-            console.log('DataManager: Setting current scene to:', currentScene?.id);
 
             this.setState({
                 isLoading: false,
@@ -64,7 +54,6 @@ export class DataManager {
             });
 
         } catch (error) {
-            console.error('DataManager: Error loading scene data:', error);
             this.setState({
                 isLoading: false,
                 error: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -76,17 +65,11 @@ export class DataManager {
      * Switch to a different scene by ID
      */
     switchToScene(sceneId: string): boolean {
-        console.log('DataManager: Attempting to switch to scene:', sceneId);
-        console.log('DataManager: Available scenes:', this.state.allScenes.map(s => s.id));
-        console.log('DataManager: Current scene before switch:', this.state.currentScene?.id);
-        
         const scene = this.state.allScenes.find(s => s.id === sceneId);
         if (scene) {
-            console.log('DataManager: Found scene, switching to:', scene.id);
             this.setState({ currentScene: scene });
             return true;
         }
-        console.log('DataManager: Scene not found:', sceneId);
         return false;
     }
 
@@ -130,7 +113,6 @@ export class DataManager {
      */
     subscribe(listener: (state: DataManagerState) => void): () => void {
         this.listeners.push(listener);
-        // Return unsubscribe function
         return () => {
             const index = this.listeners.indexOf(listener);
             if (index > -1) {
@@ -155,8 +137,7 @@ export class DataManager {
         if (!response.ok) {
             throw new Error(`Failed to fetch data: ${response.statusText}`);
         }
-        const data = await response.json();
-        return data as LoadedJsonFile;
+        return await response.json() as LoadedJsonFile;
     }
 }
 

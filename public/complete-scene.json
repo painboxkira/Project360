@@ -3,7 +3,7 @@
     {
       "id": "intro",
       "title": "Formation Cuisine - Introduction",
-      "panoramaUrl": "./scene/intro.jpg",
+      "panoramaUrl": "/scene/intro.jpg",
       "sphereRadius": 3,
       
       "hotspots": [
@@ -22,18 +22,18 @@
           ],
           "size": 1.5,
           "isCompleted": false,
-          "imagePath": "/textures/complete.png",
-          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_001.png", "/textures/complete.png"]
+          "imagePath": "/textures/link_001.png"
+          
         }
       ]
     },
     {
       "id": "kitchen-training",
       "title": "Formation Cuisine - Sauce Brûlée",
-      "panoramaUrl": "./scene/cuisine.jpg",
+      "panoramaUrl": "/scene/cuisine.jpg",
       "sphereRadius": 3,
       "audio": {
-        "path_to_audio": "./assets/brulure.mp3",
+        "path_to_audio": "/assets/brulure.mp3",
         "initial_state": "auto_play",
         "trigger_type": "stop",
         "trigger": "hotspot_004",
@@ -50,9 +50,7 @@
           "position": [0, 0, 2],
           "size": 0.5,
           "isCompleted": false,
-          "img":"./personas/sonia.jpg",
-          "imagePath": "/textures/infodef.png",
-          "texturePath": ["/textures/infodef.png", "/textures/infodef.png", "/textures/complete.png"]
+          "texturePath": ["/textures/introSonia.png", "/textures/play.png"]
         },
         {
           "id": "hotspot_001",

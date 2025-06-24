@@ -53,7 +53,8 @@ export default function InfoHotspot({ texturePath, position, onComplete }: InfoH
 
     // Create geometries once
     const circleGeometry = useRef(new THREE.CircleGeometry(0.1, 64));
-    const planeGeometry = useRef(new THREE.PlaneGeometry(1.0, 0.6));
+    const planeGeometry = useRef(new THREE.PlaneGeometry(2.0, 0.6));
+    planeGeometry.current.translate(0, 0, 0.5);
 
     // Billboarding - always face the camera
     useFrame(() => {
@@ -81,7 +82,7 @@ export default function InfoHotspot({ texturePath, position, onComplete }: InfoH
 
                 // Set initial texture
                 if (meshRef.current && initial) {
-                    const material = meshRef.current.material as THREE.MeshBasicMaterial;
+                    const material = meshRef.current.material as THREE.MeshStandardMaterial;
                     material.map = initial;
                     material.needsUpdate = true;
                 }
@@ -116,15 +117,16 @@ export default function InfoHotspot({ texturePath, position, onComplete }: InfoH
             if (!state.isActive) {
                 state.isActive = true;
                 if (meshRef.current && textures.tooltip) {
-                    const material = meshRef.current.material as THREE.MeshBasicMaterial;
+                    const material = meshRef.current.material as THREE.MeshStandardMaterial;
                     material.map = textures.tooltip;
                     material.needsUpdate = true;
                     meshRef.current.geometry = planeGeometry.current;
+                    meshRef.current.scale.set(1.5, 1.5, 1.5);
                 }
             } else {
                 state.isActive = false;
                 if (meshRef.current && textures.completed) {
-                    const material = meshRef.current.material as THREE.MeshBasicMaterial;
+                    const material = meshRef.current.material as THREE.MeshStandardMaterial;
                     material.map = textures.completed;
                     material.needsUpdate = true;
                     meshRef.current.geometry = circleGeometry.current;
@@ -135,17 +137,18 @@ export default function InfoHotspot({ texturePath, position, onComplete }: InfoH
             if (!state.isActive) {
                 state.isActive = true;
                 if (meshRef.current && textures.tooltip) {
-                    const material = meshRef.current.material as THREE.MeshBasicMaterial;
+                    const material = meshRef.current.material as THREE.MeshStandardMaterial;
                     material.map = textures.tooltip;
                     material.needsUpdate = true;
                     meshRef.current.geometry = planeGeometry.current;
+                    meshRef.current.scale.set(1.5, 1.5, 1.5);
                 }
             } else {
                 // Then mark as completed
                 state.isCompleted = true;
                 state.isActive = false;
                 if (meshRef.current && textures.completed) {
-                    const material = meshRef.current.material as THREE.MeshBasicMaterial;
+                    const material = meshRef.current.material as THREE.MeshStandardMaterial;
                     material.map = textures.completed;
                     material.needsUpdate = true;
                     meshRef.current.geometry = circleGeometry.current;
@@ -178,12 +181,18 @@ export default function InfoHotspot({ texturePath, position, onComplete }: InfoH
                 onClick={handleClick}
                 renderOrder={stateRef.current.isActive ? 1000 : 0}
             >
-                <meshBasicMaterial 
-                    transparent={true} 
+                <meshStandardMaterial 
+                    transparent={true}
+                    opacity={0.9}
                     side={THREE.DoubleSide}
+                    roughness={0.0}
+                    metalness={0.0}
                     alphaTest={0.1}
                     depthTest={!stateRef.current.isActive}
                     depthWrite={!stateRef.current.isActive}
+                    flatShading={true}
+                    emissive={0x000000}
+                    emissiveIntensity={0}
                 />
             </mesh>
         </group>
