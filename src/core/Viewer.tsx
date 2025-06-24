@@ -1,5 +1,5 @@
 import  { useState, useEffect, useRef} from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -61,11 +61,15 @@ export const clearTextureCache = () => {
 };
 
 // Scene component that switches textures
-const Scene = ({ currentTexturePath }: { 
+const Scene = ({ currentTexturePath, sceneId }: { 
     currentTexturePath: string;
+    sceneId?: string;
 }) => {
     const meshRef = useRef<THREE.Mesh>(null);
     const [material, setMaterial] = useState<THREE.MeshBasicMaterial | null>(null);
+    const { camera } = useThree();
+    const raycasterRef = useRef<THREE.Raycaster>(new THREE.Raycaster());
+    const lastSceneIdRef = useRef<string | undefined>(sceneId);
 
     useEffect(() => {
         const updateTexture = async () => {
@@ -103,10 +107,34 @@ const Scene = ({ currentTexturePath }: {
         };
     }, [material]);
 
+    // Reset raycast when scene changes
+    useEffect(() => {
+        if (sceneId !== lastSceneIdRef.current) {
+            console.log('=== Scene Changed - Resetting Raycast ===');
+            console.log('Previous scene:', lastSceneIdRef.current);
+            console.log('New scene:', sceneId);
+            console.log('========================================');
+            
+            // Reset raycaster
+            raycasterRef.current = new THREE.Raycaster();
+            lastSceneIdRef.current = sceneId;
+        }
+    }, [sceneId]);
+
+    // Dynamic raycasting on every frame
+    useFrame(() => {
+        if (meshRef.current && camera) {
+            const targetObjects = [meshRef.current];
+            
+            // Perform raycast with debug logging
+            cameraRaycast(targetObjects, raycasterRef.current, camera);
+        }
+    });
+
     return (
         <mesh 
             ref={meshRef} 
-            scale={[-3, 3, 3]} 
+            scale={[-1, 1, 1]} 
             rotation={[0, 0, 0]} 
             position={[0, 0, 0]}
         >
@@ -123,15 +151,32 @@ const Scene = ({ currentTexturePath }: {
     );
 };
 
-const Viewer = ({ texturePath }: { texturePath: string }) => {
+// Function to perform camera raycasting with debug logging
+function cameraRaycast(targetObjects: THREE.Object3D[], raycaster: THREE.Raycaster, camera: THREE.Camera) {
+    const direction = new THREE.Vector3();
+    camera.getWorldDirection(direction);
+    
+    // Set raycaster from camera position in the direction it's facing
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+    
+    // Perform the raycast
+    const intersects = raycaster.intersectObjects(targetObjects, true);
+    
+    return intersects;
+}
+
+const Viewer = ({ texturePath, sceneId, children }: { 
+    texturePath: string, 
+    sceneId?: string,
+    children: React.ReactNode 
+}) => {
     return (
         <Canvas camera={{ position: [0, 0, 2], fov: 90, zoom: 3 }}>
-            {/* Add lighting back */}
             <ambientLight intensity={0.5} />
-            <directionalLight position={[10, 10, 5]} intensity={1} />
-            
+            <directionalLight position={[1, 1, 1]} intensity={1} />
             <OrbitControls />
-            <Scene currentTexturePath={texturePath} />
+            <Scene currentTexturePath={texturePath} sceneId={sceneId} />
+            {children}
         </Canvas>
     );
 };

@@ -14,6 +14,7 @@ interface LoadedJsonFile {
 export interface ProcessedScene {
     id: string;
     panoramaUrl: string;
+    hotspots?: any[];
 }
 
 // Scene processor class
@@ -30,7 +31,8 @@ export class SceneProcessor {
             .filter(scene => scene.id && scene.panoramaUrl)
             .map(scene => ({
                 id: scene.id,
-                panoramaUrl: scene.panoramaUrl
+                panoramaUrl: scene.panoramaUrl,
+                hotspots: scene.hotspots || []
             }));
     }
 

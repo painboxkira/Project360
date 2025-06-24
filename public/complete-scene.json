@@ -22,7 +22,8 @@
           ],
           "size": 1.5,
           "isCompleted": false,
-          "imagePath": "/textures/complete.png"
+          "imagePath": "/textures/complete.png",
+          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_001.png", "/textures/complete.png"]
         }
       ]
     },
@@ -50,7 +51,8 @@
           "size": 0.5,
           "isCompleted": false,
           "img":"./personas/sonia.jpg",
-          "imagePath": "/textures/infodef.png"
+          "imagePath": "/textures/infodef.png",
+          "texturePath": ["/textures/infodef.png", "/textures/infodef.png", "/textures/complete.png"]
         },
         {
           "id": "hotspot_001",
@@ -65,7 +67,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
-          "imagePath": "/textures/kitchen-training_hotspot_001.png"
+          "imagePath": "/textures/kitchen-training_hotspot_001.png",
+          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_001.png", "/textures/complete.png"]
         },
         {
           "id": "hotspot_002",
@@ -80,7 +83,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
-          "imagePath": "/textures/kitchen-training_hotspot_002.png"
+          "imagePath": "/textures/kitchen-training_hotspot_002.png",
+          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_002.png", "/textures/complete.png"]
         },
         {
           "id": "hotspot_003",
@@ -96,7 +100,8 @@
           "size": 1.0,
           "isCompleted": false,
           "order": 1,
-          "imagePath": "/textures/kitchen-training_hotspot_003.png"
+          "imagePath": "/textures/kitchen-training_hotspot_003.png",
+          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_003.png", "/textures/complete.png"]
         },
         {
           "id": "hotspot_004",
@@ -111,7 +116,8 @@
           ],
           "size": 1.2,
           "isCompleted": false,
-          "imagePath": "/textures/kitchen-training_hotspot_004.png"
+          "imagePath": "/textures/kitchen-training_hotspot_004.png",
+          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_004.png", "/textures/complete.png"]
         },
         {
           "id": "hotspot_005",
@@ -126,7 +132,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
-          "imagePath": "/textures/kitchen-training_hotspot_005.png"
+          "imagePath": "/textures/kitchen-training_hotspot_005.png",
+          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_005.png", "/textures/complete.png"]
         },
         {
           "id": "hotspot_006",
@@ -141,7 +148,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
-          "imagePath": "/textures/kitchen-training_hotspot_006.png"
+          "imagePath": "/textures/kitchen-training_hotspot_006.png",
+          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_006.png", "/textures/complete.png"]
         },
         {
           "id": "hotspot_007",
@@ -156,7 +164,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
-          "imagePath": "/textures/kitchen-training_hotspot_007.png"
+          "imagePath": "/textures/kitchen-training_hotspot_007.png",
+          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_007.png", "/textures/complete.png"]
         },
         {
           "id": "safety-qcm-1",
@@ -177,7 +186,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
-          "imagePath": "/textures/questiondef.png"
+          "imagePath": "/textures/questiondef.png",
+          "texturePath": ["/textures/infodef.png", "/textures/questiondef.png", "/textures/complete.png"]
         },
         {
           "id": "activai_001",
@@ -188,7 +198,8 @@
           "size": 1.2,
           "isCompleted": false,
           "cameraTarget": [],
-          "imagePath": "/textures/infodef.png"
+          "imagePath": "/textures/infodef.png",
+          "texturePath": ["/textures/infodef.png", "/textures/infodef.png", "/textures/complete.png"]
         }
       ]
     }
