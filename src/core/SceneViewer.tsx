@@ -9,6 +9,7 @@ import InfoHotspot, { preloadHotspotTextures } from '../hotspots/InfoHotspot';
 import LinkHotspot from '../hotspots/LinkHotspot';
 import IntroHotspot from '../hotspots/IntroHotspot';
 import QCUhotspot from '../hotspots/QCUhotspot';
+import StaticImg from '../hotspots/StaticImg';
 import AudioManager from './AudioManager';
 import AudioControls from './AudioControls';
 
@@ -365,6 +366,10 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
                         if (hotspot.texturePath && Array.isArray(hotspot.texturePath)) {
                             allHotspotTextures.push(...hotspot.texturePath.filter(Boolean));
                         }
+                        // Also preload imagePath textures for image type hotspots
+                        if (hotspot.type === 'image' && hotspot.imagePath) {
+                            allHotspotTextures.push(hotspot.imagePath);
+                        }
                     });
                     preloadHotspotTextures(allHotspotTextures);
                 }
@@ -533,6 +538,18 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
                                 position={hotspot.position} 
                                 onClickBehaviour={() => handleSceneSwitch(hotspot.targetScene)}
                                 onActivate={() => handleHotspotActivate(hotspot.id, hotspot.position)}
+                            />
+                        );
+                    }
+                    
+                    if (hotspot.type === 'image') {
+                        return (
+                            <StaticImg 
+                                key={hotspot.id} 
+                                imagePath={hotspot.imagePath} 
+                                position={hotspot.position} 
+                                width={hotspot.width}
+                                height={hotspot.height}
                             />
                         );
                     }

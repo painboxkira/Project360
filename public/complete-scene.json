@@ -91,9 +91,9 @@
           "subtype": "object_default",
           "text": "Vérifiez s'il y a assez d'ingrédients pour refaire la sauce rapidement. Proposez une alternative si la sauce ne peut pas être récupérée.",
           "position": [
-            -1.2486469856796596,
-            0.4010417776997883,
-            -2.6981560736348245
+            -1.6,
+            0.4,
+            -2.6
           ],
           "size": 1.0,
           "isCompleted": false,
@@ -191,8 +191,9 @@
           "id": "img_001",
           "type": "image",
           "imagePath": "/textures/manu.png",
-          "position": [0.125, -0.075, -2.914],
-          "size": 1.0
+          "position": [0.125, 0.5, -3],
+          "width": 1.5,
+          "height": 0.25
         },
         {
           "id": "activai_001",
