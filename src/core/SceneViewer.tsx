@@ -48,6 +48,9 @@ const SmoothCameraRotation = ({ targetPosition, isActive, orbitControlsRef }: {
                 cancelAnimationFrame(animationRef.current);
             }
             
+            // Disable orbit controls during animation
+            controls.enabled = false;
+            
             const animate = () => {
                 const elapsed = Date.now() - startTimeRef.current;
                 const duration = 1000;
@@ -67,6 +70,8 @@ const SmoothCameraRotation = ({ targetPosition, isActive, orbitControlsRef }: {
                     animationRef.current = requestAnimationFrame(animate);
                 } else {
                     animationRef.current = null;
+                    // Re-enable orbit controls after animation completes
+                    controls.enabled = true;
                 }
             };
             
@@ -76,6 +81,10 @@ const SmoothCameraRotation = ({ targetPosition, isActive, orbitControlsRef }: {
         return () => {
             if (animationRef.current) {
                 cancelAnimationFrame(animationRef.current);
+                // Re-enable orbit controls if animation is cancelled
+                if (orbitControlsRef.current) {
+                    orbitControlsRef.current.enabled = true;
+                }
             }
         };
     }, [isActive, targetPosition, orbitControlsRef]);
