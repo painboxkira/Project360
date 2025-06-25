@@ -266,10 +266,17 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
         completedHotspots: new Set<string>(),
         activeHotspotId: null as string | null,
         activeHotspotPosition: null as [number, number, number] | null,
-        activeUIHotspotId: null as string | null
+        activeUIHotspotId: null as string | null,
+        layoutTimeoutActive: false
     });
     
     const orbitControlsRef = useRef<any>(null);
+    const layoutTimeoutRef = useRef<number | null>(null);
+
+    // State update helpers
+    const updateSceneState = useCallback((updates: Partial<typeof sceneState>) => {
+        setSceneState(prev => ({ ...prev, ...updates }));
+    }, []);
 
     // Memoized computed values
     const computedState = useMemo(() => {
@@ -286,25 +293,51 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
         const allRequiredHotspotsCompleted = requiredHotspots.length === 0 || 
             requiredHotspots.every((h: any) => sceneState.completedHotspots.has(h.id));
         
-        const shouldShowLayout = !shouldHideOtherHotspots && allRequiredHotspotsCompleted;
+        const shouldShowLayout = !shouldHideOtherHotspots && allRequiredHotspotsCompleted && sceneState.layoutTimeoutActive;
         const activAISlug = sceneState.currentScene.hotspots?.find((h: any) => h.type === 'activai')?.slug;
 
         // Proper debug log showing progress
         if (requiredHotspots.length > 0) {
-            console.log(`Hotspots: ${completedRequiredHotspots.length}/${requiredHotspots.length} completed - ActivAI: ${shouldShowLayout ? 'SHOWING' : 'HIDDEN'}`);
+            console.log(`Hotspots: ${completedRequiredHotspots.length}/${requiredHotspots.length} completed - ActivAI: ${shouldShowLayout ? 'SHOWING' : 'HIDDEN'} (Timeout: ${sceneState.layoutTimeoutActive})`);
         }
 
         return {
             hasIntroHotspots,
             shouldHideOtherHotspots,
             shouldShowLayout,
-            activAISlug
+            activAISlug,
+            allRequiredHotspotsCompleted
         };
-    }, [sceneState.currentScene, sceneState.introCompleted, sceneState.completedHotspots]);
+    }, [sceneState.currentScene, sceneState.introCompleted, sceneState.completedHotspots, sceneState.layoutTimeoutActive]);
 
-    // State update helpers
-    const updateSceneState = useCallback((updates: Partial<typeof sceneState>) => {
-        setSceneState(prev => ({ ...prev, ...updates }));
+    // Effect to handle timeout when all hotspots are completed
+    useEffect(() => {
+        if (computedState?.allRequiredHotspotsCompleted && !sceneState.layoutTimeoutActive) {
+            // Clear any existing timeout
+            if (layoutTimeoutRef.current) {
+                clearTimeout(layoutTimeoutRef.current);
+            }
+            
+            // Set timeout to show layout after 2 seconds (2000ms)
+            layoutTimeoutRef.current = setTimeout(() => {
+                updateSceneState({ layoutTimeoutActive: true });
+            }, 2000);
+        }
+        
+        return () => {
+            if (layoutTimeoutRef.current) {
+                clearTimeout(layoutTimeoutRef.current);
+            }
+        };
+    }, [computedState?.allRequiredHotspotsCompleted, sceneState.layoutTimeoutActive, updateSceneState]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (layoutTimeoutRef.current) {
+                clearTimeout(layoutTimeoutRef.current);
+            }
+        };
     }, []);
 
     useEffect(() => {
@@ -346,13 +379,20 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
 
     useEffect(() => {
         const unsubscribe = dataManager.subscribe((state) => {
+            // Clear any existing timeout when switching scenes
+            if (layoutTimeoutRef.current) {
+                clearTimeout(layoutTimeoutRef.current);
+                layoutTimeoutRef.current = null;
+            }
+            
             updateSceneState({
                 currentScene: state.currentScene,
                 introCompleted: false,
                 completedHotspots: new Set(),
                 activeHotspotId: null,
                 activeHotspotPosition: null,
-                activeUIHotspotId: null
+                activeUIHotspotId: null,
+                layoutTimeoutActive: false
             });
         });
 

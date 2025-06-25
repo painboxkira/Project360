@@ -42,7 +42,8 @@ const InfoHotspot = ({
     onComplete, 
     onActivate, 
     isActive = false, 
-    onSetActive
+    onSetActive,
+    onSetInactive
 }: InfoHotspotProps) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isCompleted, setIsCompleted] = useState(false);
@@ -107,7 +108,7 @@ const InfoHotspot = ({
             )}
             
             {isActive && (
-                <mesh onClick={handleComplete}>
+                <mesh onClick={() => onSetInactive?.()}>
                     <planeGeometry args={[2, 1]} />
                     <meshBasicMaterial 
                         map={tooltipTexture}
