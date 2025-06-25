@@ -1,5 +1,5 @@
-import  { useState, useEffect, useRef} from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
+import  { useState, useEffect, useRef, Children, useCallback} from 'react';
+import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -67,13 +67,19 @@ export const clearTextureCache = () => {
     textureCache.clear();
 };
 
-// Scene component that switches textures
 const Scene = ({ currentTexturePath, sceneId }: { 
     currentTexturePath: string;
     sceneId?: string;
 }) => {
     const meshRef = useRef<THREE.Mesh>(null);
     const [material, setMaterial] = useState<THREE.MeshBasicMaterial | null>(null);
+    const { camera } = useThree();
+
+    useFrame(() => {
+        if (meshRef.current) {
+            camera.lookAt(meshRef.current.position);
+        }
+    });
 
     useEffect(() => {
         const updateTexture = async () => {
@@ -221,10 +227,11 @@ const LightingSystem = () => {
     );
 };
 
-const Viewer = ({ texturePath, sceneId, children }: { 
+const Viewer = ({ texturePath, sceneId, children, disableControls = false }: { 
     texturePath: string, 
     sceneId?: string,
-    children: React.ReactNode 
+    children: React.ReactNode,
+    disableControls?: boolean
 }) => {
     return (
         <Canvas 
@@ -239,7 +246,7 @@ const Viewer = ({ texturePath, sceneId, children }: {
             }}
             onCreated={({ gl, scene }) => {
                 // Disable ambient occlusion and reflections
-                gl.toneMapping = THREE.NoToneMapping;
+                gl.toneMapping = THREE.NoToneMapping;       
                 gl.outputColorSpace = THREE.SRGBColorSpace;
                 scene.traverse((child) => {
                     if (child instanceof THREE.Mesh && child.material) {
@@ -261,7 +268,7 @@ const Viewer = ({ texturePath, sceneId, children }: {
             }}
         >
             
-            <OrbitControls />
+            {!disableControls && <OrbitControls />}
             <Scene currentTexturePath={texturePath} sceneId={sceneId} />
             {children}
         </Canvas>

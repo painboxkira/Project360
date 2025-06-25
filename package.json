@@ -17,6 +17,7 @@
     "@react-three/uikit-default": "^0.8.19",
     "@react-three/xr": "^6.6.17",
     "@types/html2canvas": "^0.5.35",
+    "gsap": "^3.13.0",
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.515.0",
     "react": "^19.1.0",

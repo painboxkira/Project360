@@ -169,13 +169,13 @@
           "id": "safety-qcm-1",
           "title": "Sécurité au travail",
           "type": "question",
-          "subtype": "qcm",
+          "subtype": "qcu",
           "question": "Votre collègue fait brûler la sauce. Que faites-vous ?",
           "choices": [
-            { "id": "a", "text": "Je l'engueule car il aurait pu voir que ça brûlait.", "isCorrect": false },
-            { "id": "b", "text": "Je lui demande de m'aider sans en parler au chef.", "isCorrect": false },
-            { "id": "c", "text": "Pas le temps de converser avec lui : à l'heure du service, il faut trouver une solution.", "isCorrect": true },
-            { "id": "d", "text": "Je lui demande d'aller chercher Esteban, le second de cuisine", "isCorrect": false }
+            { "id": "a", "text": "Je l'engueule car il aurait pu voir que ça brûlait.", "isCorrect": false, "texture": "/textures/choice1.png" },
+            { "id": "b", "text": "Je lui demande de m'aider sans en parler au chef.", "isCorrect": false, "texture": "/textures/choice3.png" },
+            { "id": "c", "text": "Pas le temps de converser avec lui : à l'heure du service, il faut trouver une solution.", "isCorrect": true, "texture": "/textures/choice2.png" },
+            { "id": "d", "text": "Je lui demande d'aller chercher Esteban, le second de cuisine", "isCorrect": false, "texture": "/textures/choice4.png" }
           ],
           "position": [
             0.125,
@@ -185,7 +185,7 @@
           "size": 1.0,
           "isCompleted": false,
           "imagePath": "/textures/questiondef.png",
-          "texturePath": ["/textures/infodef.png", "/textures/questiondef.png", "/textures/complete.png"]
+          "texturePath": ["/textures/questiondef.png", "/textures/complete.png", "/textures/infodef.png"]
         },
         {
           "id": "activai_001",
@@ -195,7 +195,6 @@
           "position": [0, 0, 2],
           "size": 1.2,
           "isCompleted": false,
-          "cameraTarget": [],
           "imagePath": "/textures/infodef.png",
           "texturePath": ["/textures/infodef.png", "/textures/infodef.png", "/textures/complete.png"]
         }

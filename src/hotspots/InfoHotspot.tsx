@@ -110,6 +110,7 @@ export default function InfoHotspot({ texturePath, position, onComplete }: InfoH
         
         if (!isActive) {
             // Show tooltip
+            
             hotspotManager.setActiveHotspot(tooltipMeshRef, deactivateCallback);
             setIsActive(true);
         } else {
@@ -122,6 +123,8 @@ export default function InfoHotspot({ texturePath, position, onComplete }: InfoH
     const handleInitialClick = (event: any) => {
         event.stopPropagation();
         setIsCompleted(true);
+        // Call onComplete when hotspot is completed
+        onComplete?.();
         // Show tooltip immediately after completion
         hotspotManager.setActiveHotspot(tooltipMeshRef, deactivateCallback);
         setIsActive(true);
