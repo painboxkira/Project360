@@ -12,7 +12,7 @@ const StaticImg = ({ imagePath, position, width, height }: {
     return (
         <mesh position={position}>
             <planeGeometry args={[width, height]} />
-            <meshBasicMaterial map={texture} />
+            <meshBasicMaterial map={texture} transparent={true} opacity={1} side={THREE.DoubleSide} />
         </mesh>
     );
 };

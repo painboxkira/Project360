@@ -153,7 +153,7 @@ const QCUhotspot = ({texturePath, position, onComplete, choices, onActivate, isA
                                 <meshBasicMaterial 
                                     map={choicesTextures[index]}
                                     transparent
-                                    opacity={0.9}
+                                    opacity={1}
                                 />
                             </mesh>
                         );

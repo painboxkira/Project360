@@ -3,7 +3,7 @@
     {
       "id": "intro",
       "title": "Formation Cuisine - Introduction",
-      "panoramaUrl": "/scene/intro.jpg",
+      "panoramaUrl": "./scene/intro.jpg",
       "sphereRadius": 3,
       
       "hotspots": [
@@ -22,7 +22,7 @@
           ],
           "size": 1.5,
           "isCompleted": false,
-          "imagePath": "/textures/link_001.png"
+          "imagePath": "./textures/link_001.png"
           
         }
       ]
@@ -30,10 +30,10 @@
     {
       "id": "kitchen-training",
       "title": "Formation Cuisine - Sauce Brûlée",
-      "panoramaUrl": "/scene/cuisine.jpg",
+      "panoramaUrl": "./scene/cuisine.jpg",
       "sphereRadius": 3,
       "audio": {
-        "path_to_audio": "/assets/brulure.mp3",
+        "path_to_audio": "./assets/brulure.mp3",
         "initial_state": "auto_play",
         "trigger_type": "stop",
         "trigger": "hotspot_004",
@@ -50,7 +50,7 @@
           "position": [0, 0, 2],
           "size": 0.5,
           "isCompleted": false,
-          "texturePath": ["/textures/introSonia.png", "/textures/play.png"]
+          "texturePath": ["./textures/introSonia.png", "./textures/play.png"]
         },
         {
           "id": "hotspot_001",
@@ -65,8 +65,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
-          "imagePath": "/textures/kitchen-training_hotspot_001.png",
-          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_001.png", "/textures/complete.png"]
+          "imagePath": "./textures/kitchen-training_hotspot_001.png",
+          "texturePath": ["./textures/infodef.png", "./textures/kitchen-training_hotspot_001.png", "./textures/complete.png"]
         },
         {
           "id": "hotspot_002",
@@ -81,8 +81,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
-          "imagePath": "/textures/kitchen-training_hotspot_002.png",
-          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_002.png", "/textures/complete.png"]
+          "imagePath": "./textures/kitchen-training_hotspot_002.png",
+          "texturePath": ["./textures/infodef.png", "./textures/kitchen-training_hotspot_002.png", "./textures/complete.png"]
         },
         {
           "id": "hotspot_003",
@@ -98,8 +98,8 @@
           "size": 1.0,
           "isCompleted": false,
           "order": 1,
-          "imagePath": "/textures/kitchen-training_hotspot_003.png",
-          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_003.png", "/textures/complete.png"]
+          "imagePath": "./textures/kitchen-training_hotspot_003.png",
+          "texturePath": ["./textures/infodef.png", "./textures/kitchen-training_hotspot_003.png", "./textures/complete.png"]
         },
         {
           "id": "hotspot_004",
@@ -114,8 +114,8 @@
           ],
           "size": 1.2,
           "isCompleted": false,
-          "imagePath": "/textures/kitchen-training_hotspot_004.png",
-          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_004.png", "/textures/complete.png"]
+          "imagePath": "./textures/kitchen-training_hotspot_004.png",
+          "texturePath": ["./textures/infodef.png", "./textures/kitchen-training_hotspot_004.png", "./textures/complete.png"]
         },
         {
           "id": "hotspot_005",
@@ -130,8 +130,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
-          "imagePath": "/textures/kitchen-training_hotspot_005.png",
-          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_005.png", "/textures/complete.png"]
+          "imagePath": "./textures/kitchen-training_hotspot_005.png",
+          "texturePath": ["./textures/infodef.png", "./textures/kitchen-training_hotspot_005.png", "./textures/complete.png"]
         },
         {
           "id": "hotspot_006",
@@ -146,8 +146,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
-          "imagePath": "/textures/kitchen-training_hotspot_006.png",
-          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_006.png", "/textures/complete.png"]
+          "imagePath": "./textures/kitchen-training_hotspot_006.png",
+          "texturePath": ["./textures/infodef.png", "./textures/kitchen-training_hotspot_006.png", "./textures/complete.png"]
         },
         {
           "id": "hotspot_007",
@@ -162,8 +162,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
-          "imagePath": "/textures/kitchen-training_hotspot_007.png",
-          "texturePath": ["/textures/infodef.png", "/textures/kitchen-training_hotspot_007.png", "/textures/complete.png"]
+          "imagePath": "./textures/kitchen-training_hotspot_007.png",
+          "texturePath": ["./textures/infodef.png", "./textures/kitchen-training_hotspot_007.png", "./textures/complete.png"]
         },
         {
           "id": "safety-qcm-1",
@@ -172,10 +172,10 @@
           "subtype": "qcu",
           "question": "Votre collègue fait brûler la sauce. Que faites-vous ?",
           "choices": [
-            { "id": "a", "text": "Je l'engueule car il aurait pu voir que ça brûlait.", "isCorrect": false, "texture": "/textures/choice1.png" },
-            { "id": "b", "text": "Je lui demande de m'aider sans en parler au chef.", "isCorrect": false, "texture": "/textures/choice3.png" },
-            { "id": "c", "text": "Pas le temps de converser avec lui : à l'heure du service, il faut trouver une solution.", "isCorrect": true, "texture": "/textures/choice2.png" },
-            { "id": "d", "text": "Je lui demande d'aller chercher Esteban, le second de cuisine", "isCorrect": false, "texture": "/textures/choice4.png" }
+            { "id": "a", "text": "Je l'engueule car il aurait pu voir que ça brûlait.", "isCorrect": false, "texture": "./textures/choice1.png" },
+            { "id": "b", "text": "Je lui demande de m'aider sans en parler au chef.", "isCorrect": false, "texture": "./textures/choice3.png" },
+            { "id": "c", "text": "Pas le temps de converser avec lui : à l'heure du service, il faut trouver une solution.", "isCorrect": true, "texture": "./textures/choice2.png" },
+            { "id": "d", "text": "Je lui demande d'aller chercher Esteban, le second de cuisine", "isCorrect": false, "texture": "./textures/choice4.png" }
           ],
           "position": [
             0.125,
@@ -184,13 +184,13 @@
           ],
           "size": 1.0,
           "isCompleted": false,
-          "imagePath": "/textures/questiondef.png",
-          "texturePath": ["/textures/questiondef.png", "/textures/complete.png", "/textures/feedback.png"]
+          "imagePath": "./textures/questiondef.png",
+          "texturePath": ["./textures/questiondef.png", "./textures/complete.png", "./textures/feedback.png"]
         },
         {
           "id": "img_001",
           "type": "image",
-          "imagePath": "/textures/manu.png",
+          "imagePath": "./textures/manu.png",
           "position": [0.125, 0.5, -3],
           "width": 1.5,
           "height": 0.25
@@ -203,8 +203,8 @@
           "position": [0, 0, 2],
           "size": 1.2,
           "isCompleted": false,
-          "imagePath": "/textures/infodef.png",
-          "texturePath": ["/textures/infodef.png", "/textures/infodef.png", "/textures/complete.png"]
+          "imagePath": "./textures/infodef.png",
+          "texturePath": ["./textures/infodef.png", "./textures/infodef.png", "./textures/complete.png"]
         }
       ]
     }

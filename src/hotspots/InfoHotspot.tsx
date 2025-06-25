@@ -113,7 +113,7 @@ const InfoHotspot = ({
                     <meshBasicMaterial 
                         map={tooltipTexture}
                         transparent
-                        opacity={0.9}
+                        opacity={1}
                     />
                 </mesh>
             )}
