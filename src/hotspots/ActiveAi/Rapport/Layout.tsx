@@ -58,9 +58,6 @@ const Layout: React.FC<LayoutProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioLevels, setAudioLevels] = useState<number[]>([]);
-  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<string>('');
   
   // New state for feedback
   const [showFeedback, setShowFeedback] = useState(false);
@@ -252,60 +249,6 @@ const Layout: React.FC<LayoutProps> = ({
     setResponse('');
     setAudioBlob(null);
     setAudioUrl(null);
-    setUploadedUrl(null);
-  };
-
-  const handleTestUpload = async () => {
-    if (!audioBlob) {
-      alert('No audio recorded yet. Please record some audio first.');
-      return;
-    }
-
-    setIsUploading(true);
-    setUploadProgress('Starting upload...');
-    const startTime = Date.now();
-    
-    console.log('Starting upload...');
-    console.log('Audio blob size:', audioBlob.size, 'bytes');
-    
-    try {
-      const audioFile = new File([audioBlob], 'recording.wav', { type: 'audio/wav' });
-      console.log('Created file:', audioFile.name, 'Size:', audioFile.size);
-      
-      setUploadProgress('Uploading to server...');
-      
-      // Add timeout protection
-      const uploadPromise = uploadAudio(audioFile);
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Upload timeout after 30 seconds')), 30000)
-      );
-      
-      const url = await Promise.race([uploadPromise, timeoutPromise]) as string;
-      const uploadTime = Date.now() - startTime;
-      
-      setUploadedUrl(url);
-      setUploadProgress(`Upload completed in ${uploadTime}ms`);
-      console.log('✅ Upload successful! URL:', url);
-      console.log('⏱️ Upload time:', uploadTime, 'ms');
-    } catch (error) {
-      const uploadTime = Date.now() - startTime;
-      setUploadProgress(`Upload failed after ${uploadTime}ms`);
-      console.error('❌ Upload failed:', error);
-      
-      if (error instanceof Error) {
-        if (error.message.includes('timeout')) {
-          alert('Upload timed out after 30 seconds. Check your internet connection and try again.');
-        } else if (error.message.includes('fetch')) {
-          alert('Network error. Check if the server is running and accessible.');
-        } else {
-          alert(`Upload failed: ${error.message}`);
-        }
-      } else {
-        alert('Upload failed with unknown error. Check console for details.');
-      }
-    } finally {
-      setIsUploading(false);
-    }
   };
 
   // If showing feedback, render the Feedback component
@@ -423,58 +366,6 @@ const Layout: React.FC<LayoutProps> = ({
                 onEnded={handleAudioEnded}
                 style={{ display: 'none' }}
               />
-            </div>
-          )}
-
-          {/* Test upload section - FOR TESTING ONLY */}
-          {audioBlob && !isRecording && (
-            <div className="test-upload-section">
-              <div className="test-upload-header">
-                <span className="test-label">🧪 TEST UPLOAD</span>
-                <button 
-                  className="test-upload-button"
-                  onClick={handleTestUpload}
-                  disabled={isUploading || isSubmitting}
-                >
-                  {isUploading ? (
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M8 1V8L11 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M8 15C11.866 15 15 11.866 15 8C15 4.13401 11.866 1 8 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  ) : (
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M8 1V8L11 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M8 15C11.866 15 15 11.866 15 8C15 4.13401 11.866 1 8 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                  {isUploading ? 'Uploading...' : 'Test Upload'}
-                </button>
-              </div>
-              
-              {uploadProgress && (
-                <div className="upload-progress">
-                  <div className="progress-text">{uploadProgress}</div>
-                  {isUploading && (
-                    <div className="progress-spinner">
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10 1C14.9706 1 19 5.02944 19 10C19 14.9706 14.9706 19 10 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              {uploadedUrl && (
-                <div className="upload-result">
-                  <div className="upload-success">✅ Upload successful!</div>
-                  <div className="upload-url">
-                    <strong>URL:</strong> 
-                    <a href={uploadedUrl} target="_blank" rel="noopener noreferrer">
-                      {uploadedUrl}
-                    </a>
-                  </div>
-                </div>
-              )}
             </div>
           )}
           
