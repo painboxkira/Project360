@@ -188,6 +188,13 @@
           "texturePath": ["/textures/questiondef.png", "/textures/complete.png", "/textures/feedback.png"]
         },
         {
+          "id": "img_001",
+          "type": "image",
+          "imagePath": "/textures/manu.png",
+          "position": [0.125, -0.075, -2.914],
+          "size": 1.0
+        },
+        {
           "id": "activai_001",
           "title": "ActivAI Feedback",
           "type": "activai",

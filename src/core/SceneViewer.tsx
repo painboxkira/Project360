@@ -9,6 +9,8 @@ import InfoHotspot, { preloadHotspotTextures } from '../hotspots/InfoHotspot';
 import LinkHotspot from '../hotspots/LinkHotspot';
 import IntroHotspot from '../hotspots/IntroHotspot';
 import QCUhotspot from '../hotspots/QCUhotspot';
+import AudioManager from './AudioManager';
+import AudioControls from './AudioControls';
 
 import Layout from '../hotspots/ActiveAi/Rapport/Layout';
 
@@ -454,6 +456,18 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
 
     return (
         <div style={{width: '100vw', height: '100vh', position: 'relative'}}>
+            {/* Audio Manager for background audio */}
+            <AudioManager 
+                audioConfig={sceneState.currentScene.audio || null}
+                completedHotspots={sceneState.completedHotspots}
+            />
+            
+            {/* Audio Controls UI */}
+            <AudioControls 
+                audioConfig={sceneState.currentScene.audio || null}
+                isVisible={!!sceneState.currentScene.audio}
+            />
+            
             <Viewer 
                 texturePath={sceneState.currentScene.panoramaUrl} 
                 orbitControlsRef={orbitControlsRef}

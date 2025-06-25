@@ -15,6 +15,7 @@ export interface ProcessedScene {
     id: string;
     panoramaUrl: string;
     hotspots?: any[];
+    audio?: any;
 }
 
 // Scene processor class
@@ -32,7 +33,8 @@ export class SceneProcessor {
             .map(scene => ({
                 id: scene.id,
                 panoramaUrl: scene.panoramaUrl,
-                hotspots: scene.hotspots || []
+                hotspots: scene.hotspots || [],
+                audio: scene.audio || null
             }));
     }
 
