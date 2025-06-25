@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
+import { hotspotManager } from "../core/hotspotManager";
 
 interface InfoHotspotProps {
     texturePath: string[]; // Flexible array of texture paths
@@ -8,53 +9,29 @@ interface InfoHotspotProps {
     onComplete?: () => void;
 }
 
-// Use the same texture cache as Viewer
-const textureCache = new Map<string, THREE.Texture>();
-
-const preloadTexture = async (texturePath: string): Promise<THREE.Texture> => {
-    if (textureCache.has(texturePath)) {
-        return textureCache.get(texturePath)!;
-    }
-
-    const loader = new THREE.TextureLoader();
-    return new Promise((resolve, reject) => {
-        loader.load(
-            texturePath,
-            (texture) => {
-                textureCache.set(texturePath, texture);
-                resolve(texture);
-            },
-            undefined,
-            reject
-        );
-    });
-};
-
 export default function InfoHotspot({ texturePath, position, onComplete }: InfoHotspotProps) {
-    const meshRef = useRef<THREE.Mesh>(null!);
     const groupRef = useRef<THREE.Group>(null!);
+    const tooltipMeshRef = useRef<THREE.Mesh>(null!);
     const { camera } = useThree();
     
-    const stateRef = useRef({
-        isHovered: false,
-        isActive: false,
-        isCompleted: false
-    });
+    const [isHovered, setIsHovered] = useState(false);
+    const [isActive, setIsActive] = useState(false);
+    const [tooltipTexture, setTooltipTexture] = useState<THREE.Texture | null>(null);
+    const [isCompleted, setIsCompleted] = useState(false);
+    const [initialTexture, setInitialTexture] = useState<THREE.Texture | null>(null);
+    const [completedTexture, setCompletedTexture] = useState<THREE.Texture | null>(null);
+    
+    // Deactivation callback for the hotspot manager
+    const deactivateCallback = () => {
+        setIsActive(false);
+    };
 
-    const texturesRef = useRef<{
-        initial: THREE.Texture | null;
-        tooltip: THREE.Texture | null;
-        completed: THREE.Texture | null;
-    }>({
-        initial: null,
-        tooltip: null,
-        completed: null
-    });
-
-    // Create geometries once
-    const circleGeometry = useRef(new THREE.CircleGeometry(0.1, 64));
-    const planeGeometry = useRef(new THREE.PlaneGeometry(2.0, 0.6));
-    planeGeometry.current.translate(0, 0, 0.5);
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            hotspotManager.deactivateHotspot(tooltipMeshRef);
+        };
+    }, []);
 
     // Billboarding - always face the camera
     useFrame(() => {
@@ -66,26 +43,47 @@ export default function InfoHotspot({ texturePath, position, onComplete }: InfoH
     // Load all textures at the start
     useEffect(() => {
         const loadTextures = async () => {
+            const loader = new THREE.TextureLoader();
+            
             try {
-                // Ensure we have at least 3 texture paths, use defaults if not provided
-                const initialPath = texturePath[0] || "/textures/infodef.png";
+                // Load tooltip texture
                 const tooltipPath = texturePath[1] || "/textures/infodef.png";
+                loader.load(
+                    tooltipPath,
+                    (texture) => {
+                        setTooltipTexture(texture);
+                    },
+                    undefined,
+                    (error) => {
+                        console.error('Failed to load tooltip texture:', error);
+                    }
+                );
+
+                // Load initial texture
+                const initialPath = texturePath[0] || "/textures/questiondef.png";
+                loader.load(
+                    initialPath,
+                    (texture) => {
+                        setInitialTexture(texture);
+                    },
+                    undefined,
+                    (error) => {
+                        console.error('Failed to load initial texture:', error);
+                    }
+                );
+
+                // Load completed texture
                 const completedPath = texturePath[2] || "/textures/complete.png";
-
-                const [initial, tooltip, completed] = await Promise.all([
-                    preloadTexture(initialPath),
-                    preloadTexture(tooltipPath),
-                    preloadTexture(completedPath)
-                ]);
-
-                texturesRef.current = { initial, tooltip, completed };
-
-                // Set initial texture
-                if (meshRef.current && initial) {
-                    const material = meshRef.current.material as THREE.MeshStandardMaterial;
-                    material.map = initial;
-                    material.needsUpdate = true;
-                }
+                loader.load(
+                    completedPath,
+                    (texture) => {
+                        setCompletedTexture(texture);
+                    },
+                    undefined,
+                    (error) => {
+                        console.error('Failed to load completed texture:', error);
+                    }
+                );
             } catch (error) {
                 console.error('Failed to load hotspot textures:', error);
             }
@@ -94,103 +92,125 @@ export default function InfoHotspot({ texturePath, position, onComplete }: InfoH
         loadTextures();
     }, [texturePath]);
 
-    // Event handlers - no state updates, just ref updates
+    // Event handlers
     const handleMouseEnter = (event: any) => {
         event.stopPropagation();
-        stateRef.current.isHovered = true;
+        setIsHovered(true);
         document.body.style.cursor = 'pointer';
     };
     
     const handleMouseLeave = (event: any) => {
         event.stopPropagation();
-        stateRef.current.isHovered = false;
+        setIsHovered(false);
         document.body.style.cursor = 'auto';
     };
 
     const handleClick = (event: any) => {
         event.stopPropagation();
-        const state = stateRef.current;
-        const textures = texturesRef.current;
         
-        if (state.isCompleted) {
-            // If already completed, just toggle activation (show/hide tooltip)
-            if (!state.isActive) {
-                state.isActive = true;
-                if (meshRef.current && textures.tooltip) {
-                    const material = meshRef.current.material as THREE.MeshStandardMaterial;
-                    material.map = textures.tooltip;
-                    material.needsUpdate = true;
-                    meshRef.current.geometry = planeGeometry.current;
-                    meshRef.current.scale.set(1.5, 1.5, 1.5);
-                }
-            } else {
-                state.isActive = false;
-                if (meshRef.current && textures.completed) {
-                    const material = meshRef.current.material as THREE.MeshStandardMaterial;
-                    material.map = textures.completed;
-                    material.needsUpdate = true;
-                    meshRef.current.geometry = circleGeometry.current;
-                }
-            }
+        if (!isActive) {
+            // Show tooltip
+            hotspotManager.setActiveHotspot(tooltipMeshRef, deactivateCallback);
+            setIsActive(true);
         } else {
-            // For non-completed hotspots, first show the tooltip
-            if (!state.isActive) {
-                state.isActive = true;
-                if (meshRef.current && textures.tooltip) {
-                    const material = meshRef.current.material as THREE.MeshStandardMaterial;
-                    material.map = textures.tooltip;
-                    material.needsUpdate = true;
-                    meshRef.current.geometry = planeGeometry.current;
-                    meshRef.current.scale.set(1.5, 1.5, 1.5);
-                }
-            } else {
-                // Then mark as completed
-                state.isCompleted = true;
-                state.isActive = false;
-                if (meshRef.current && textures.completed) {
-                    const material = meshRef.current.material as THREE.MeshStandardMaterial;
-                    material.map = textures.completed;
-                    material.needsUpdate = true;
-                    meshRef.current.geometry = circleGeometry.current;
-                }
-                if (onComplete) {
-                    onComplete();
-                }
-            }
+            // Hide tooltip
+            hotspotManager.deactivateHotspot(tooltipMeshRef);
+            setIsActive(false);
         }
+    };
+
+    const handleInitialClick = (event: any) => {
+        event.stopPropagation();
+        setIsCompleted(true);
+        // Show tooltip immediately after completion
+        hotspotManager.setActiveHotspot(tooltipMeshRef, deactivateCallback);
+        setIsActive(true);
     };
 
     // Smooth hover effect
     useFrame(() => {
-        if (meshRef.current) {
-            const targetScale = stateRef.current.isHovered ? 1.05 : 1;
-            const currentScale = meshRef.current.scale.x;
+        if (tooltipMeshRef.current) {
+            const targetScale = isHovered ? 1.05 : 1;
+            const currentScale = tooltipMeshRef.current.scale.x;
             const newScale = THREE.MathUtils.lerp(currentScale, targetScale, 0.1);
-            meshRef.current.scale.setScalar(newScale);
+            tooltipMeshRef.current.scale.setScalar(newScale);
         }
     });
 
-    return (
-        <group ref={groupRef} position={position}>
-            <mesh
-                ref={meshRef}
-                position={[0, 0, 0]}
-                geometry={circleGeometry.current}
-                onPointerEnter={handleMouseEnter}
-                onPointerLeave={handleMouseLeave}
-                onClick={handleClick}
-                renderOrder={stateRef.current.isActive ? 1000 : 0}
-            >
-                <meshBasicMaterial 
-                    transparent={true}
-                    opacity={1.0}
-                    side={THREE.DoubleSide}
-                    alphaTest={0.5}
-                    depthTest={!stateRef.current.isActive}
-                    depthWrite={!stateRef.current.isActive}
-                    toneMapped={false}
-                />
-            </mesh>
-        </group>
-    );
-}
+    // Common material properties
+    const commonMaterialProps = {
+        transparent: true,
+        opacity: 1,
+        side: THREE.DoubleSide,
+        alphaTest: 0.5,
+        depthTest: false,
+        depthWrite: false,
+        toneMapped: false,
+    };
+
+    if (isActive) {
+        return (
+            <group ref={groupRef} position={position}>
+                {/* Tooltip mesh */}
+                <mesh
+                    ref={tooltipMeshRef}
+                    position={[0, 0, 0]}
+                    onPointerEnter={handleMouseEnter}
+                    onPointerLeave={handleMouseLeave}
+                    onClick={handleClick}
+                    visible={isActive}
+                    scale={[1.5, 1.5, 1.5]}
+                    renderOrder={1000}
+                >
+                    <planeGeometry args={[1.875, 1]} />
+                    <meshBasicMaterial 
+                        map={tooltipTexture}
+                        transparent={true}
+                        opacity={1.0}
+                        side={THREE.DoubleSide}
+                        alphaTest={0.5}
+                        depthTest={false}
+                        depthWrite={false}
+                        toneMapped={false}
+                    />
+                </mesh>
+            </group>
+        );
+    } else if (isCompleted) {
+        return (
+            <group ref={groupRef} position={position}>
+                <mesh 
+                    ref={tooltipMeshRef}
+                    position={[0, 0, 0]}
+                    onPointerEnter={handleMouseEnter}
+                    onPointerLeave={handleMouseLeave}
+                    onClick={handleClick}
+                >
+                    <circleGeometry args={[0.1, 32]} />
+                    <meshBasicMaterial 
+                        map={completedTexture}
+                        {...commonMaterialProps}
+                    />
+                </mesh>
+            </group>
+        );
+    } else {
+        return (
+            <group ref={groupRef} position={position}>
+                <mesh 
+                    ref={tooltipMeshRef}
+                    position={[0, 0, 0]}
+                    onPointerEnter={handleMouseEnter}
+                    onPointerLeave={handleMouseLeave}
+                    onClick={handleInitialClick}
+                >
+                    <circleGeometry args={[0.1, 32]} />
+                    <meshBasicMaterial 
+                        map={initialTexture}
+                        {...commonMaterialProps}
+                    />
+                </mesh>
+            </group>
+        );
+    }
+} 

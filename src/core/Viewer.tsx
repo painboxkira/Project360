@@ -260,7 +260,7 @@ const Viewer = ({ texturePath, sceneId, children }: {
                 });
             }}
         >
-            <LightingSystem />
+            
             <OrbitControls />
             <Scene currentTexturePath={texturePath} sceneId={sceneId} />
             {children}
