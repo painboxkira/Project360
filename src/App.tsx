@@ -1,5 +1,5 @@
 import SceneViewer from "./core/SceneViewer";
-import Layout from "./hotspots/ActiveAi/Rapport/Layout";
+
 
 function App() {
   return (

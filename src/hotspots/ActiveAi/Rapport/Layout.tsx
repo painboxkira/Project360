@@ -10,6 +10,7 @@ import Feedback from './Feedback';
 interface LayoutProps {
   onSubmit?: (response: string, files: File[]) => void;
   onRecordingToggle?: (isRecording: boolean) => void;
+  onQuit?: () => void;
   position?: [number, number, number];
   transform?: boolean;
   distanceFactor?: number;
@@ -25,11 +26,13 @@ interface LayoutProps {
   as?: string;
   wrapperClass?: string;
   slug?: string;
+  isVisible?: boolean;
 }
 
 const Layout: React.FC<LayoutProps> = ({ 
   onSubmit, 
   onRecordingToggle,
+  onQuit,
   position = [0, 0, 0],
   transform = true,
   distanceFactor = 1,
@@ -44,7 +47,8 @@ const Layout: React.FC<LayoutProps> = ({
   calculatePosition,
   as = 'div',
   wrapperClass,
-  slug
+  slug,
+  isVisible = true
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [response, setResponse] = useState('');
@@ -324,8 +328,14 @@ const Layout: React.FC<LayoutProps> = ({
         calculatePosition={calculatePosition}
         as={as}
         wrapperClass={wrapperClass}
+        onQuit={onQuit}
       />
     );
+  }
+
+  // Don't render if not visible
+  if (!isVisible) {
+    return null;
   }
 
   return (

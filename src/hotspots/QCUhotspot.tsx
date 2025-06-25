@@ -1,7 +1,6 @@
-import { useLoader } from "@react-three/fiber";
 import * as THREE from "three";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useMemo, useRef, useState } from "react";
+
 
 interface Choice {
     id: string;
@@ -17,17 +16,26 @@ function checkTexturePath(texturePath: string[]) {
     return texturePath;
 }
 
-const QCUhotspot = ({texturePath, position, onComplete, choices}: {texturePath: string[], position: [number, number, number], onComplete: () => void, choices: Choice[]}) => {
+const QCUhotspot = ({texturePath, position, onComplete, choices, onActivate, isActive = false, onSetActive, onSetInactive}: {
+    texturePath: string[], 
+    position: [number, number, number], 
+    onComplete: () => void, 
+    choices: Choice[],
+    onActivate?: () => void,
+    isActive?: boolean,
+    onSetActive?: () => void,
+    onSetInactive?: () => void
+}) => {
 
     const checkedTexturePath = checkTexturePath(texturePath);
 
     const [isHovered, setIsHovered] = useState(false);
-    const [isActive, setIsActive] = useState(false);
     const [isCompleted, setIsCompleted] = useState(false);
     const [isCorrect, setIsCorrect] = useState(false);
     const [isIncorrect, setIsIncorrect] = useState(false);
     const [selectedChoice, setSelectedChoice] = useState<Choice | null>(null);
     const [showFeedback, setShowFeedback] = useState(false);
+    const [hoveredChoiceIndex, setHoveredChoiceIndex] = useState<number | null>(null);
     
     const groupRef = useRef<THREE.Group>(null);
   
@@ -36,6 +44,7 @@ const QCUhotspot = ({texturePath, position, onComplete, choices}: {texturePath: 
             texture: choice.texture,
         };
     });
+    
 
     // Load textures directly with useMemo
     const initialTexture = useMemo(() => {
@@ -63,6 +72,7 @@ const QCUhotspot = ({texturePath, position, onComplete, choices}: {texturePath: 
             // Complete immediately for correct answers
             setTimeout(() => {
                 setIsCompleted(true);
+                onSetInactive?.();
                 onComplete();
             }, 500);
         } else {
@@ -78,6 +88,15 @@ const QCUhotspot = ({texturePath, position, onComplete, choices}: {texturePath: 
         }
     };
 
+    const handleMainClick = () => {
+        if (!isActive && !isCompleted) {
+            // Trigger lookat behavior
+            onActivate?.();
+            // Set this hotspot as active
+            onSetActive?.();
+        }
+    };
+
     const getCurrentTexture = () => {
         if (isCompleted) return completedTexture;
         return initialTexture;
@@ -89,7 +108,8 @@ const QCUhotspot = ({texturePath, position, onComplete, choices}: {texturePath: 
             <mesh
                 onPointerOver={() => setIsHovered(true)}
                 onPointerOut={() => setIsHovered(false)}
-                onClick={() => !isActive && setIsActive(true)}
+                onClick={handleMainClick}
+                scale={isHovered ? 1.1 : 1}
             >
                 <circleGeometry args={[0.1, 64]} />
                 <meshBasicMaterial 
@@ -109,10 +129,12 @@ const QCUhotspot = ({texturePath, position, onComplete, choices}: {texturePath: 
                         
                         // Calculate spacing based on aspect ratio 738x169
                         const aspectRatio = 738 / 169; // ≈ 4.37
-                        const choiceWidth = 1;
+                        const choiceWidth = 1.5; // Increased from 1 to 1.5
                         const choiceHeight = choiceWidth / aspectRatio;
                         const spacingX = choiceWidth * 1.2;
                         const spacingY = choiceHeight * 1.2;
+                        
+                        const isChoiceHovered = hoveredChoiceIndex === index;
                         
                         return (
                             <mesh
@@ -122,7 +144,10 @@ const QCUhotspot = ({texturePath, position, onComplete, choices}: {texturePath: 
                                     -row * spacingY, 
                                     0
                                 ]}
+                                scale={isChoiceHovered ? 1.1 : 1}
                                 onClick={() => handleChoiceSelect(choice)}
+                                onPointerOver={() => setHoveredChoiceIndex(index)}
+                                onPointerOut={() => setHoveredChoiceIndex(null)}
                             >
                                 <planeGeometry args={[choiceWidth, choiceHeight]} />
                                 <meshBasicMaterial 
@@ -138,13 +163,13 @@ const QCUhotspot = ({texturePath, position, onComplete, choices}: {texturePath: 
             
             {/* Feedback message - show when incorrect answer is selected */}
             {showFeedback && (
-                <group position={[0, 1.5, 0]}>
+                <group position={[0, 0.7, 1]}>
                     <mesh>
-                        <planeGeometry args={[2, 0.5]} />
+                        <planeGeometry args={[3, 1]} />
                         <meshBasicMaterial 
                             map={feedbackTexture}
                             transparent
-                            opacity={0.8}
+                            opacity={1}
                         />
                     </mesh>
                     {/* You can add text here if needed */}

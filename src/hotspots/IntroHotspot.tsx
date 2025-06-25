@@ -64,7 +64,7 @@ const IntroHotspot = ({
             onPointerOver={handleHover} 
             onPointerOut={handleHoverOut} 
             onClick={handleClick} 
-            position={[position[0], position[1] -0.5, position[2] -0.1]}
+            position={[position[0], position[1] -0.5, position[2] + 0.2]}
         >
             <circleGeometry args={[0.2, 32]} />
             <meshBasicMaterial 

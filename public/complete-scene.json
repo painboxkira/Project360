@@ -185,7 +185,7 @@
           "size": 1.0,
           "isCompleted": false,
           "imagePath": "/textures/questiondef.png",
-          "texturePath": ["/textures/questiondef.png", "/textures/complete.png", "/textures/infodef.png"]
+          "texturePath": ["/textures/questiondef.png", "/textures/complete.png", "/textures/feedback.png"]
         },
         {
           "id": "activai_001",

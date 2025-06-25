@@ -29,6 +29,7 @@ interface FeedbackData {
 interface FeedbackProps {
   data: FeedbackData;
   onClose?: () => void;
+  onQuit?: () => void;
   position?: [number, number, number];
   transform?: boolean;
   distanceFactor?: number;
@@ -48,6 +49,7 @@ interface FeedbackProps {
 const Feedback: React.FC<FeedbackProps> = ({
   data,
   onClose,
+  onQuit,
   position = [0, 0, 0],
   transform = true,
   distanceFactor = 1,
@@ -72,10 +74,12 @@ const Feedback: React.FC<FeedbackProps> = ({
   };
 
   const handleClose = () => {
-    if (onClose) {
+    if (onQuit) {
+      onQuit();
+    } else if (onClose) {
       onClose();
     } else {
-      // Fallback to window close if no onClose handler
+      // Fallback to window close if no handlers provided
       try {
         setTimeout(() => {
           document.body.innerHTML = `<div style="text-align: center; font-size: 2em; padding: 20px; background-color: #f0f0f0; border: 1px solid #ccc;">${translations["CanCloseWindow"]}</div>`;

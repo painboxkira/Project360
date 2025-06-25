@@ -1,17 +1,14 @@
-import  { useState, useEffect, useRef, Children, useCallback} from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 
-// Texture cache to store preloaded textures
+// Texture cache with improved memory management
 const textureCache = new Map<string, THREE.Texture>();
-
-// Memory management for texture cache
-const MAX_CACHE_SIZE = 10; // Maximum number of textures to keep in cache
+const MAX_CACHE_SIZE = 15;
 
 const cleanupTextureCache = () => {
     if (textureCache.size > MAX_CACHE_SIZE) {
-        // Remove oldest textures (first entries)
         const entries = Array.from(textureCache.entries());
         const toRemove = entries.slice(0, textureCache.size - MAX_CACHE_SIZE);
         
@@ -22,9 +19,8 @@ const cleanupTextureCache = () => {
     }
 };
 
-// Preload texture function
 const preloadTexture = async (texturePath: string): Promise<THREE.Texture> => {
-    if (!texturePath || texturePath.trim() === '') {
+    if (!texturePath?.trim()) {
         throw new Error('Texture path cannot be empty');
     }
     
@@ -34,43 +30,33 @@ const preloadTexture = async (texturePath: string): Promise<THREE.Texture> => {
 
     const loader = new THREE.TextureLoader();
     return new Promise((resolve, reject) => {
-        console.log(`Loading texture: ${texturePath}`);
         loader.load(
             texturePath,
             (texture) => {
-                console.log(`Successfully loaded texture: ${texturePath}`);
                 textureCache.set(texturePath, texture);
-                cleanupTextureCache(); // Clean up if cache gets too large
+                cleanupTextureCache();
                 resolve(texture);
             },
             undefined,
             (error: unknown) => {
                 const errorMessage = error instanceof Error ? error.message : String(error);
-                console.error(`Failed to load texture: ${texturePath}`, error);
                 reject(new Error(`Failed to load texture: ${texturePath} - ${errorMessage}`));
             }
         );
     });
 };
 
-// Preload all textures for smooth transitions
 export const preloadAllTextures = async (texturePaths: string[]): Promise<void> => {
     const loadPromises = texturePaths.map(path => preloadTexture(path));
     await Promise.all(loadPromises);
 };
 
-// Clear texture cache to free memory
 export const clearTextureCache = () => {
-    textureCache.forEach((texture) => {
-        texture.dispose();
-    });
+    textureCache.forEach((texture) => texture.dispose());
     textureCache.clear();
 };
 
-const Scene = ({ currentTexturePath, sceneId }: { 
-    currentTexturePath: string;
-    sceneId?: string;
-}) => {
+const Scene = ({ currentTexturePath }: { currentTexturePath: string }) => {
     const meshRef = useRef<THREE.Mesh>(null);
     const [material, setMaterial] = useState<THREE.MeshBasicMaterial | null>(null);
     const { camera } = useThree();
@@ -83,20 +69,12 @@ const Scene = ({ currentTexturePath, sceneId }: {
 
     useEffect(() => {
         const updateTexture = async () => {
-            // Don't try to load empty texture paths
-            if (!currentTexturePath || currentTexturePath.trim() === '') {
-                console.warn('Skipping texture load for empty path');
-                return;
-            }
+            if (!currentTexturePath?.trim()) return;
 
             try {
-                // Use cached texture if available, otherwise load it
-                let texture: THREE.Texture;
-                if (textureCache.has(currentTexturePath)) {
-                    texture = textureCache.get(currentTexturePath)!;
-                } else {
-                    texture = await preloadTexture(currentTexturePath);
-                }
+                const texture = textureCache.has(currentTexturePath) 
+                    ? textureCache.get(currentTexturePath)! 
+                    : await preloadTexture(currentTexturePath);
                 
                 const newMaterial = new THREE.MeshBasicMaterial({
                     map: texture,
@@ -107,10 +85,8 @@ const Scene = ({ currentTexturePath, sceneId }: {
                 
                 setMaterial(newMaterial);
             } catch (error) {
-                console.error(`Failed to load texture: ${currentTexturePath}`, error);
-                // Create a fallback material with a visible color to indicate loading failure
                 const fallbackMaterial = new THREE.MeshBasicMaterial({
-                    color: 0xff0000, // Red color to indicate error
+                    color: 0xff0000,
                     side: THREE.BackSide,
                     transparent: false,
                     depthWrite: false
@@ -122,7 +98,6 @@ const Scene = ({ currentTexturePath, sceneId }: {
         updateTexture();
     }, [currentTexturePath]);
 
-    // Cleanup material on unmount
     useEffect(() => {
         return () => {
             if (material) {
@@ -132,12 +107,7 @@ const Scene = ({ currentTexturePath, sceneId }: {
     }, [material]);
 
     return (
-        <mesh 
-            ref={meshRef} 
-            scale={[-1, 1, 1]} 
-            rotation={[0, 0, 0]} 
-            position={[0, 0, 0]}
-        >
+        <mesh ref={meshRef} scale={[-1, 1, 1]} rotation={[0, 0, 0]} position={[0, 0, 0]}>
             <sphereGeometry args={[3, 64, 32]} />
             {material && (
                 <meshBasicMaterial 
@@ -151,87 +121,25 @@ const Scene = ({ currentTexturePath, sceneId }: {
     );
 };
 
-// Comprehensive lighting system for optimal color rendering
 const LightingSystem = () => {
     return (
         <>
-            {/* Ambient light for overall scene illumination */}
-            <ambientLight 
-                intensity={0.6} 
-                color={0xffffff}
-            />
-            
-            {/* Main directional light for primary illumination */}
-            <directionalLight
-                position={[5, 5, 5]}
-                intensity={1.2}
-                color={0xffffff}
-                castShadow={false}
-            />
-            
-            {/* Secondary directional light for fill lighting */}
-            <directionalLight
-                position={[-3, 3, -3]}
-                intensity={0.5}
-                color={0xffffff}
-                castShadow={false}
-            />
-            
-            {/* Back lighting for InfoHotspots (negative Z positions) */}
-            <directionalLight
-                position={[0, 0, -5]}
-                intensity={1.0}
-                color={0xffffff}
-                castShadow={false}
-            />
-            
-            {/* Left back lighting for InfoHotspots */}
-            <directionalLight
-                position={[-5, 0, -3]}
-                intensity={0.8}
-                color={0xffffff}
-                castShadow={false}
-            />
-            
-            {/* Right back lighting for InfoHotspots */}
-            <directionalLight
-                position={[5, 0, -3]}
-                intensity={0.8}
-                color={0xffffff}
-                castShadow={false}
-            />
-            
-            {/* Top-down light for hotspot illumination */}
-            <directionalLight
-                position={[0, 10, 0]}
-                intensity={1.0}
-                color={0xffffff}
-                castShadow={false}
-            />
-            
-            {/* Front-facing light for hotspot readability */}
-            <directionalLight
-                position={[0, 0, 5]}
-                intensity={0.8}
-                color={0xffffff}
-                castShadow={false}
-            />
-            
-            {/* Subtle hemisphere light for environmental lighting */}
-            <hemisphereLight 
-                intensity={0.3} 
-                groundColor={0x404040}
-                color={0xffffff}
-            />
+            <ambientLight intensity={0.6} color={0xffffff} />
+            <directionalLight position={[5, 5, 5]} intensity={1.2} color={0xffffff} />
+            <directionalLight position={[-3, 3, -3]} intensity={0.5} color={0xffffff} />
+            <directionalLight position={[0, 0, -5]} intensity={1.0} color={0xffffff} />
+            <directionalLight position={[0, 10, 0]} intensity={1.0} color={0xffffff} />
+            <directionalLight position={[0, 0, 5]} intensity={0.8} color={0xffffff} />
+            <hemisphereLight intensity={0.3} groundColor={0x404040} color={0xffffff} />
         </>
     );
 };
 
-const Viewer = ({ texturePath, sceneId, children, disableControls = false }: { 
+const Viewer = ({ texturePath, children, disableControls = false, orbitControlsRef }: { 
     texturePath: string, 
-    sceneId?: string,
     children: React.ReactNode,
-    disableControls?: boolean
+    disableControls?: boolean,
+    orbitControlsRef?: React.RefObject<any>
 }) => {
     return (
         <Canvas 
@@ -245,7 +153,6 @@ const Viewer = ({ texturePath, sceneId, children, disableControls = false }: {
                 logarithmicDepthBuffer: false
             }}
             onCreated={({ gl, scene }) => {
-                // Disable ambient occlusion and reflections
                 gl.toneMapping = THREE.NoToneMapping;       
                 gl.outputColorSpace = THREE.SRGBColorSpace;
                 scene.traverse((child) => {
@@ -267,9 +174,9 @@ const Viewer = ({ texturePath, sceneId, children, disableControls = false }: {
                 });
             }}
         >
-            
-            {!disableControls && <OrbitControls />}
-            <Scene currentTexturePath={texturePath} sceneId={sceneId} />
+            {!disableControls && <OrbitControls ref={orbitControlsRef} />}
+            <Scene currentTexturePath={texturePath} />
+            <LightingSystem />
             {children}
         </Canvas>
     );
