@@ -5,7 +5,7 @@ interface AudioControlsProps {
   isVisible?: boolean;
 }
 
-const AudioControls = ({ audioConfig, isVisible = true }: AudioControlsProps) => {
+const AudioControls = ({ audioConfig, isVisible = false }: AudioControlsProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(audioConfig?.volume || 0.5);
 

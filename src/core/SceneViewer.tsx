@@ -465,7 +465,7 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
             {/* Audio Controls UI */}
             <AudioControls 
                 audioConfig={sceneState.currentScene.audio || null}
-                isVisible={!!sceneState.currentScene.audio}
+                isVisible={false}
             />
             
             <Viewer 
