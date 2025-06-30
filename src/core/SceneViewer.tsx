@@ -279,7 +279,8 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
         activeHotspotId: null as string | null,
         activeHotspotPosition: null as [number, number, number] | null,
         activeUIHotspotId: null as string | null,
-        layoutTimeoutActive: false
+        layoutTimeoutActive: false,
+        currentOrder: 0 // Track current chronological order
     });
     
     const orbitControlsRef = useRef<any>(null);
@@ -297,8 +298,9 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
         const hasIntroHotspots = sceneState.currentScene.hotspots?.some((h: any) => h.type === 'intro') || false;
         const shouldHideOtherHotspots = hasIntroHotspots && !sceneState.introCompleted;
         
+        // Only consider required info hotspots and qcu hotspots for completion
         const requiredHotspots = sceneState.currentScene.hotspots?.filter((h: any) => 
-            (h.type === 'info' || (h.type === 'question' && h.subtype === 'qcu'))
+            (h.type === 'info' && h.required === true) || (h.type === 'question' && h.subtype === 'qcu')
         ) || [];
         
         const completedRequiredHotspots = requiredHotspots.filter((h: any) => sceneState.completedHotspots.has(h.id));
@@ -308,9 +310,52 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
         const shouldShowLayout = !shouldHideOtherHotspots && allRequiredHotspotsCompleted && sceneState.layoutTimeoutActive;
         const activAISlug = sceneState.currentScene.hotspots?.find((h: any) => h.type === 'activai')?.slug;
 
+        // Chronological ordering logic
+        const getCurrentOrderHotspots = () => {
+            if (!sceneState.currentScene?.hotspots) return [];
+            
+            return sceneState.currentScene.hotspots.filter((h: any) => {
+                // Intro and ActivAI are always visible (first and last)
+                if (h.type === 'intro' || h.type === 'activai') return true;
+                
+                // Image hotspots are always visible
+                if (h.type === 'image') return true;
+                
+                // For other hotspots, check if they should be visible based on order
+                if (h.order !== undefined) {
+                    // Check if all hotspots of previous orders are completed
+                    const previousOrders = sceneState.currentScene?.hotspots
+                        ?.filter((prevH: any) => 
+                            prevH.order !== undefined && 
+                            prevH.order < h.order && 
+                            prevH.type !== 'intro' && 
+                            prevH.type !== 'activai' &&
+                            prevH.type !== 'image'
+                        ) || [];
+                    
+                    const allPreviousCompleted = previousOrders.every((prevH: any) => 
+                        sceneState.completedHotspots.has(prevH.id)
+                    );
+                    
+                    return allPreviousCompleted;
+                }
+                
+                // Hotspots without order are always visible (fallback)
+                return true;
+            });
+        };
+
+        const visibleHotspots = getCurrentOrderHotspots();
+
+        // Debug logging for chronological order
+        if (visibleHotspots.length > 0) {
+            const visibleIds = visibleHotspots.map((h: any) => `${h.id}${h.order ? `(order:${h.order})` : ''}`).join(', ');
+            console.log(`Visible hotspots: ${visibleIds}`);
+        }
+
         // Proper debug log showing progress
         if (requiredHotspots.length > 0) {
-            console.log(`Hotspots: ${completedRequiredHotspots.length}/${requiredHotspots.length} completed - ActivAI: ${shouldShowLayout ? 'SHOWING' : 'HIDDEN'} (Timeout: ${sceneState.layoutTimeoutActive})`);
+            console.log(`Required Hotspots: ${completedRequiredHotspots.length}/${requiredHotspots.length} completed - ActivAI: ${shouldShowLayout ? 'SHOWING' : 'HIDDEN'} (Timeout: ${sceneState.layoutTimeoutActive})`);
         }
 
         return {
@@ -318,7 +363,8 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
             shouldHideOtherHotspots,
             shouldShowLayout,
             activAISlug,
-            allRequiredHotspotsCompleted
+            allRequiredHotspotsCompleted,
+            visibleHotspots
         };
     }, [sceneState.currentScene, sceneState.introCompleted, sceneState.completedHotspots, sceneState.layoutTimeoutActive]);
 
@@ -408,7 +454,8 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
                 activeHotspotId: null,
                 activeHotspotPosition: null,
                 activeUIHotspotId: null,
-                layoutTimeoutActive: false
+                layoutTimeoutActive: false,
+                currentOrder: 0 // Reset chronological order when switching scenes
             });
         });
 
@@ -493,6 +540,11 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
                 />
 
                 {sceneState.currentScene.hotspots?.map((hotspot: any) => {
+                    // Only render hotspots that are currently visible based on chronological order
+                    if (!computedState?.visibleHotspots?.some((h: any) => h.id === hotspot.id)) {
+                        return null;
+                    }
+
                     if (hotspot.type === 'intro' && computedState?.hasIntroHotspots) {
                         return (
                             <CameraFacingHotspot 

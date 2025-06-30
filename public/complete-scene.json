@@ -65,6 +65,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
+          "required": false,
+          "order": 1,
           "imagePath": "./textures/kitchen-training_hotspot_001.png",
           "texturePath": ["./textures/infodef.png", "./textures/kitchen-training_hotspot_001.png", "./textures/complete.png"]
         },
@@ -81,6 +83,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
+          "required": true,
+          "order": 1,
           "imagePath": "./textures/kitchen-training_hotspot_002.png",
           "texturePath": ["./textures/infodef.png", "./textures/kitchen-training_hotspot_002.png", "./textures/complete.png"]
         },
@@ -97,7 +101,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
-          "order": 1,
+          "required": true,
+          "order": 2,
           "imagePath": "./textures/kitchen-training_hotspot_003.png",
           "texturePath": ["./textures/infodef.png", "./textures/kitchen-training_hotspot_003.png", "./textures/complete.png"]
         },
@@ -114,6 +119,8 @@
           ],
           "size": 1.2,
           "isCompleted": false,
+          "required": true,
+          "order": 2,
           "imagePath": "./textures/kitchen-training_hotspot_004.png",
           "texturePath": ["./textures/infodef.png", "./textures/kitchen-training_hotspot_004.png", "./textures/complete.png"]
         },
@@ -130,6 +137,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
+          "required": false,
+          "order": 3,
           "imagePath": "./textures/kitchen-training_hotspot_005.png",
           "texturePath": ["./textures/infodef.png", "./textures/kitchen-training_hotspot_005.png", "./textures/complete.png"]
         },
@@ -146,6 +155,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
+          "required": true,
+          "order": 3,
           "imagePath": "./textures/kitchen-training_hotspot_006.png",
           "texturePath": ["./textures/infodef.png", "./textures/kitchen-training_hotspot_006.png", "./textures/complete.png"]
         },
@@ -162,6 +173,8 @@
           ],
           "size": 1.0,
           "isCompleted": false,
+          "required": false,
+          "order": 3,
           "imagePath": "./textures/kitchen-training_hotspot_007.png",
           "texturePath": ["./textures/infodef.png", "./textures/kitchen-training_hotspot_007.png", "./textures/complete.png"]
         },
@@ -184,6 +197,7 @@
           ],
           "size": 1.0,
           "isCompleted": false,
+          "order": 4,
           "imagePath": "./textures/questiondef.png",
           "texturePath": ["./textures/questiondef.png", "./textures/complete.png", "./textures/feedback.png"]
         },
