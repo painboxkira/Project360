@@ -280,7 +280,10 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
         activeHotspotPosition: null as [number, number, number] | null,
         activeUIHotspotId: null as string | null,
         layoutTimeoutActive: false,
-        currentOrder: 0 // Track current chronological order
+        currentOrder: 0, // Track current chronological order
+        visitedScenes: new Set<string>(), // Track which scenes have been visited
+        scenesLeftAndReturned: new Set<string>(), // Track scenes that have been left and returned to
+        keyHotspotCompleted: false // Track if the key hotspot in intro was completed
     });
     
     const orbitControlsRef = useRef<any>(null);
@@ -310,16 +313,29 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
         const shouldShowLayout = !shouldHideOtherHotspots && allRequiredHotspotsCompleted && sceneState.layoutTimeoutActive;
         const activAISlug = sceneState.currentScene.hotspots?.find((h: any) => h.type === 'activai')?.slug;
 
+        // Check if this is a return visit to the current scene (left and came back)
+        const isReturnVisit = sceneState.scenesLeftAndReturned.has(sceneState.currentScene.id);
+
         // Chronological ordering logic
         const getCurrentOrderHotspots = () => {
             if (!sceneState.currentScene?.hotspots) return [];
             
             return sceneState.currentScene.hotspots.filter((h: any) => {
-                // Intro and ActivAI are always visible (first and last)
-                if (h.type === 'intro' || h.type === 'activai') return true;
+                // ActivAI is always visible (last)
+                if (h.type === 'activai') return true;
+                
+                // Intro hotspots should not appear on return visits
+                if (h.type === 'intro') {
+                    return !isReturnVisit;
+                }
                 
                 // Image hotspots are always visible
                 if (h.type === 'image') return true;
+                
+                // Hotspots with showOnReturnOnly should only appear on return visits
+                if (h.showOnReturnOnly) {
+                    return isReturnVisit;
+                }
                 
                 // For other hotspots, check if they should be visible based on order
                 if (h.order !== undefined) {
@@ -340,6 +356,11 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
                     return allPreviousCompleted;
                 }
                 
+                // Hide link hotspots that should disappear after key completion
+                if (h.type === 'link' && h.hideAfterKeyCompleted && sceneState.keyHotspotCompleted) {
+                    return false;
+                }
+                
                 // Hotspots without order are always visible (fallback)
                 return true;
             });
@@ -353,6 +374,11 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
             console.log(`Visible hotspots: ${visibleIds}`);
         }
 
+        // Debug log for return visit
+        if (isReturnVisit) {
+            console.log(`Return visit to scene: ${sceneState.currentScene.id} (left and came back)`);
+        }
+
         // Proper debug log showing progress
         if (requiredHotspots.length > 0) {
             console.log(`Required Hotspots: ${completedRequiredHotspots.length}/${requiredHotspots.length} completed - ActivAI: ${shouldShowLayout ? 'SHOWING' : 'HIDDEN'} (Timeout: ${sceneState.layoutTimeoutActive})`);
@@ -364,9 +390,10 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
             shouldShowLayout,
             activAISlug,
             allRequiredHotspotsCompleted,
-            visibleHotspots
+            visibleHotspots,
+            isReturnVisit
         };
-    }, [sceneState.currentScene, sceneState.introCompleted, sceneState.completedHotspots, sceneState.layoutTimeoutActive]);
+    }, [sceneState.currentScene, sceneState.introCompleted, sceneState.completedHotspots, sceneState.layoutTimeoutActive, sceneState.visitedScenes, sceneState.scenesLeftAndReturned]);
 
     // Effect to handle timeout when all hotspots are completed
     useEffect(() => {
@@ -407,7 +434,18 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
                 const scene = dataManager.getCurrentScene();
                 const allScenes = dataManager.getAllScenes();
                 
-                updateSceneState({ currentScene: scene });
+                // Mark the initial scene as visited
+                const initialVisitedScenes = new Set<string>();
+                const initialScenesLeftAndReturned = new Set<string>();
+                if (scene) {
+                    initialVisitedScenes.add(scene.id);
+                }
+                
+                updateSceneState({ 
+                    currentScene: scene,
+                    visitedScenes: initialVisitedScenes,
+                    scenesLeftAndReturned: initialScenesLeftAndReturned
+                });
 
                 if (allScenes.length > 0) {
                     const texturePaths = allScenes.map((s: ProcessedScene) => s.panoramaUrl);
@@ -424,6 +462,15 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
                         // Also preload imagePath textures for image type hotspots
                         if (hotspot.type === 'image' && hotspot.imagePath) {
                             allHotspotTextures.push(hotspot.imagePath);
+                        }
+                        // Preload link hotspot textures (including return textures)
+                        if (hotspot.type === 'link') {
+                            if (hotspot.imagePath) {
+                                allHotspotTextures.push(hotspot.imagePath);
+                            }
+                            if (hotspot.returnImagePath) {
+                                allHotspotTextures.push(hotspot.returnImagePath);
+                            }
                         }
                     });
                     preloadHotspotTextures(allHotspotTextures);
@@ -447,6 +494,19 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
                 layoutTimeoutRef.current = null;
             }
             
+            // Mark the current scene as visited
+            const newVisitedScenes = new Set(sceneState.visitedScenes);
+            const newScenesLeftAndReturned = new Set(sceneState.scenesLeftAndReturned);
+            
+            if (state.currentScene) {
+                newVisitedScenes.add(state.currentScene.id);
+                
+                // If this scene was previously visited, mark it as left and returned
+                if (sceneState.visitedScenes.has(state.currentScene.id)) {
+                    newScenesLeftAndReturned.add(state.currentScene.id);
+                }
+            }
+            
             updateSceneState({
                 currentScene: state.currentScene,
                 introCompleted: false,
@@ -455,12 +515,14 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
                 activeHotspotPosition: null,
                 activeUIHotspotId: null,
                 layoutTimeoutActive: false,
-                currentOrder: 0 // Reset chronological order when switching scenes
+                currentOrder: 0, // Reset chronological order when switching scenes
+                visitedScenes: newVisitedScenes, // Update visited scenes
+                scenesLeftAndReturned: newScenesLeftAndReturned // Update scenes left and returned
             });
         });
 
         return unsubscribe;
-    }, [updateSceneState]);
+    }, [updateSceneState, sceneState.visitedScenes, sceneState.scenesLeftAndReturned]);
 
     const handleSceneSwitch = useCallback((sceneId: string) => {
         const success = dataManager.switchToScene(sceneId);
@@ -486,10 +548,19 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
     }, [updateSceneState]);
 
     const handleHotspotComplete = useCallback((hotspotId: string) => {
-        setSceneState(prev => ({
-            ...prev,
-            completedHotspots: new Set([...prev.completedHotspots, hotspotId])
-        }));
+        setSceneState(prev => {
+            const newState = {
+                ...prev,
+                completedHotspots: new Set([...prev.completedHotspots, hotspotId])
+            };
+            
+            // Track if the key hotspot in intro was completed
+            if (hotspotId === 'hotspot_key') {
+                newState.keyHotspotCompleted = true;
+            }
+            
+            return newState;
+        });
     }, []);
 
     const handleIntroComplete = useCallback(() => {
@@ -499,6 +570,17 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
             activeHotspotPosition: null
         });
     }, [updateSceneState]);
+
+    // Effect to automatically complete intro on return visits
+    useEffect(() => {
+        if (computedState?.isReturnVisit && !sceneState.introCompleted) {
+            updateSceneState({
+                introCompleted: true,
+                activeHotspotId: null,
+                activeHotspotPosition: null
+            });
+        }
+    }, [computedState?.isReturnVisit, sceneState.introCompleted, updateSceneState]);
 
     const handleScenarioEnd = useCallback(() => {
         console.log('Scenario ended - user clicked Quitter');
@@ -592,10 +674,15 @@ const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
                     }
                     
                     if (hotspot.type === 'link' && !computedState?.shouldHideOtherHotspots) {
+                        // Use returnImagePath if available and it's a return visit
+                        const texturePath = computedState?.isReturnVisit && hotspot.returnImagePath 
+                            ? hotspot.returnImagePath 
+                            : hotspot.imagePath;
+                        
                         return (
                             <LinkHotspotWithLookat 
                                 key={hotspot.id} 
-                                texturePath={hotspot.imagePath} 
+                                texturePath={texturePath} 
                                 position={hotspot.position} 
                                 onClickBehaviour={() => handleSceneSwitch(hotspot.targetScene)}
                                 onActivate={() => handleHotspotActivate(hotspot.id, hotspot.position)}

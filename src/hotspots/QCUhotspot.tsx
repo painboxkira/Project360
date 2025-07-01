@@ -84,7 +84,7 @@ const QCUhotspot = ({texturePath, position, onComplete, choices, onActivate, isA
                 setShowFeedback(false);
                 setIsIncorrect(false);
                 setSelectedChoice(null);
-            }, 2000);
+            }, 1000);
         }
     };
 
@@ -165,7 +165,7 @@ const QCUhotspot = ({texturePath, position, onComplete, choices, onActivate, isA
             {showFeedback && (
                 <group position={[0, 0.7, 1]}>
                     <mesh>
-                        <planeGeometry args={[3, 1]} />
+                        <planeGeometry args={[2, 0.75]} />
                         <meshBasicMaterial 
                             map={feedbackTexture}
                             transparent
