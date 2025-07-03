@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { useLoader } from '@react-three/fiber';
+import { useTexture } from '../core/hooks/useTexture';
 
 const StaticImg = ({ imagePath, position, width, height }: { 
     imagePath: string, 
@@ -7,7 +7,7 @@ const StaticImg = ({ imagePath, position, width, height }: {
     width: number,
     height: number 
 }) => {
-    const texture = useLoader(THREE.TextureLoader, imagePath);
+    const texture = useTexture(imagePath);
 
     return (
         <mesh position={position}>

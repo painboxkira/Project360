@@ -1,7 +1,7 @@
-import {useFrame, useLoader, useThree} from "@react-three/fiber";
+import {useFrame, useThree} from "@react-three/fiber";
 import { useRef, useState } from "react";
-import {TextureLoader} from "three";
 import * as THREE from "three";
+import { useTextures } from "../core/hooks/useTexture";
 
 const IntroHotspot = ({
     texturePath, 
@@ -12,8 +12,7 @@ const IntroHotspot = ({
     position: [number, number, number],
     onComplete?: () => void
 }) => {
-    const texture = useLoader(TextureLoader, texturePath[0]);
-    const texture2 = useLoader(TextureLoader, texturePath[1]);
+    const [texture, texture2] = useTextures(texturePath);
     const groupRef = useRef<THREE.Group>(null);
     const playbuttonRef = useRef<THREE.Mesh>(null);
     const { camera } = useThree();
@@ -52,7 +51,7 @@ const IntroHotspot = ({
                 map={texture} 
                 transparent={true} 
                 opacity={1.0}
-                side={THREE.DoubleSide}
+                side={THREE.FrontSide}
                 alphaTest={0.5}
                 toneMapped={false}
             />
@@ -71,7 +70,7 @@ const IntroHotspot = ({
                 map={texture2} 
                 transparent={true} 
                 opacity={1.0}
-                side={THREE.DoubleSide}
+                side={THREE.FrontSide}
                 alphaTest={0.5}
                 toneMapped={false}
             />

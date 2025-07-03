@@ -1,11 +1,11 @@
-import {useFrame, useLoader} from "@react-three/fiber";
-import {TextureLoader} from "three";
+import {useFrame} from "@react-three/fiber";
 import { useThree } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
+import { useTexture } from "../core/hooks/useTexture";
 
 const LinkHotspot = ({texturePath, position, onClickBehaviour}: {texturePath: string, position: [number, number, number], onClickBehaviour: () => void}) => {
-    const texture = useLoader(TextureLoader, texturePath);
+    const texture = useTexture(texturePath);
         
     
     const { camera } = useThree();
@@ -32,7 +32,7 @@ const LinkHotspot = ({texturePath, position, onClickBehaviour}: {texturePath: st
                     map={texture} 
                     transparent={true} 
                     opacity={1.0}
-                    side={THREE.DoubleSide}
+                    side={THREE.FrontSide}
                     alphaTest={0.5}
                     toneMapped={false}
                 />

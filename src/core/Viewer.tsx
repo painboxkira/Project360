@@ -2,64 +2,26 @@ import { useState, useEffect, useRef } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
+import { textureManager } from './TextureManager';
+import { useTexture } from './hooks/useTexture';
 
-// Texture cache with improved memory management
-const textureCache = new Map<string, THREE.Texture>();
-const MAX_CACHE_SIZE = 15;
-
-const cleanupTextureCache = () => {
-    if (textureCache.size > MAX_CACHE_SIZE) {
-        const entries = Array.from(textureCache.entries());
-        const toRemove = entries.slice(0, textureCache.size - MAX_CACHE_SIZE);
-        
-        toRemove.forEach(([key, texture]) => {
-            texture.dispose();
-            textureCache.delete(key);
-        });
-    }
-};
-
-const preloadTexture = async (texturePath: string): Promise<THREE.Texture> => {
-    if (!texturePath?.trim()) {
-        throw new Error('Texture path cannot be empty');
-    }
-    
-    if (textureCache.has(texturePath)) {
-        return textureCache.get(texturePath)!;
-    }
-
-    const loader = new THREE.TextureLoader();
-    return new Promise((resolve, reject) => {
-        loader.load(
-            texturePath,
-            (texture) => {
-                textureCache.set(texturePath, texture);
-                cleanupTextureCache();
-                resolve(texture);
-            },
-            undefined,
-            (error: unknown) => {
-                const errorMessage = error instanceof Error ? error.message : String(error);
-                reject(new Error(`Failed to load texture: ${texturePath} - ${errorMessage}`));
-            }
-        );
-    });
-};
-
+// Legacy exports for backward compatibility
 export const preloadAllTextures = async (texturePaths: string[]): Promise<void> => {
-    const loadPromises = texturePaths.map(path => preloadTexture(path));
-    await Promise.all(loadPromises);
+    // This is now handled by TextureManager.preloadAllSceneTextures
+    console.warn('preloadAllTextures is deprecated. Use textureManager.preloadAllSceneTextures instead.');
 };
 
 export const clearTextureCache = () => {
-    textureCache.forEach((texture) => texture.dispose());
-    textureCache.clear();
+    textureManager.clearCache();
 };
 
 const Scene = ({ currentTexturePath }: { currentTexturePath: string }) => {
     const meshRef = useRef<THREE.Mesh>(null);
     const [material, setMaterial] = useState<THREE.MeshBasicMaterial | null>(null);
     const { camera } = useThree();
+    
+    // Use the cached texture from TextureManager
+    const texture = useTexture(currentTexturePath);
 
     useFrame(() => {
         if (meshRef.current) {
@@ -68,35 +30,28 @@ const Scene = ({ currentTexturePath }: { currentTexturePath: string }) => {
     });
 
     useEffect(() => {
-        const updateTexture = async () => {
-            if (!currentTexturePath?.trim()) return;
+        if (!currentTexturePath?.trim()) return;
 
-            try {
-                const texture = textureCache.has(currentTexturePath) 
-                    ? textureCache.get(currentTexturePath)! 
-                    : await preloadTexture(currentTexturePath);
-                
-                const newMaterial = new THREE.MeshBasicMaterial({
-                    map: texture,
-                    side: THREE.BackSide,
-                    transparent: false,
-                    depthWrite: false
-                });
-                
-                setMaterial(newMaterial);
-            } catch (error) {
-                const fallbackMaterial = new THREE.MeshBasicMaterial({
-                    color: 0xff0000,
-                    side: THREE.BackSide,
-                    transparent: false,
-                    depthWrite: false
-                });
-                setMaterial(fallbackMaterial);
-            }
-        };
-
-        updateTexture();
-    }, [currentTexturePath]);
+        if (texture) {
+            const newMaterial = new THREE.MeshBasicMaterial({
+                map: texture,
+                side: THREE.BackSide,
+                transparent: false,
+                depthWrite: false
+            });
+            
+            setMaterial(newMaterial);
+        } else {
+            // Fallback material if texture is not loaded
+            const fallbackMaterial = new THREE.MeshBasicMaterial({
+                color: 0xff0000,
+                side: THREE.BackSide,
+                transparent: false,
+                depthWrite: false
+            });
+            setMaterial(fallbackMaterial);
+        }
+    }, [currentTexturePath, texture]);
 
     useEffect(() => {
         return () => {
@@ -174,7 +129,7 @@ const Viewer = ({ texturePath, children, disableControls = false, orbitControlsR
                 });
             }}
         >
-            {!disableControls && <OrbitControls ref={orbitControlsRef} />}
+            {!disableControls && <OrbitControls ref={orbitControlsRef}  enableZoom={false}/>}
             <Scene currentTexturePath={texturePath} />
             <LightingSystem />
             {children}

@@ -115,23 +115,23 @@ const CameraFacingHotspot = ({ children, scale = [1, 1, 1] }: {
     );
 };
 
-// Wrapper components with lookat behavior (completion props removed)
+// Wrapper components with lookat behavior
 const InfoHotspotWithLookat = ({ 
     texturePath, 
     position, 
+    onComplete, 
     onActivate,
     isActive,
     onSetActive,
-    onSetInactive,
-    onComplete
+    onSetInactive
 }: {
     texturePath: string[];
     position: [number, number, number];
+    onComplete: () => void;
     onActivate: () => void;
     isActive: boolean;
     onSetActive: () => void;
     onSetInactive: () => void;
-    onComplete: () => void;
 }) => {
     const groupRef = useRef<THREE.Group>(null);
     const { camera } = useThree();
@@ -147,11 +147,11 @@ const InfoHotspotWithLookat = ({
             <InfoHotspot 
                 texturePath={texturePath}
                 position={[0, 0, 0]} 
+                onComplete={onComplete}
                 onActivate={onActivate}
                 isActive={isActive}
                 onSetActive={onSetActive}
                 onSetInactive={onSetInactive}
-                onComplete={onComplete}
             />
         </group>
     );
@@ -160,21 +160,21 @@ const InfoHotspotWithLookat = ({
 const QCUHotspotWithLookat = ({ 
     texturePath, 
     position, 
+    onComplete, 
     onActivate,
     isActive,
     onSetActive,
     onSetInactive,
-    choices,
-    onComplete
+    choices
 }: {
     texturePath: string[];
     position: [number, number, number];
+    onComplete: () => void;
     onActivate: () => void;
     isActive: boolean;
     onSetActive: () => void;
     onSetInactive: () => void;
     choices: any[];
-    onComplete: () => void;
 }) => {
     const groupRef = useRef<THREE.Group>(null);
     const { camera } = useThree();
@@ -190,12 +190,12 @@ const QCUHotspotWithLookat = ({
             <QCUhotspot
                 texturePath={texturePath}
                 position={[0, 0, 0]}
+                onComplete={onComplete}
                 choices={choices}
                 onActivate={onActivate}
                 isActive={isActive}
                 onSetActive={onSetActive}
                 onSetInactive={onSetInactive}
-                onComplete={onComplete}
             />
         </group>
     );
@@ -204,25 +204,23 @@ const QCUHotspotWithLookat = ({
 const QCMHotspotWithLookat = ({ 
     texturePath, 
     position, 
+    onComplete, 
     onActivate,
     isActive,
     onSetActive,
     onSetInactive,
     choices,
-    questionTexture,
-    submitTexture,
-    onComplete
+    questionTexture
 }: {
     texturePath: string[];
     position: [number, number, number];
+    onComplete: () => void;
     onActivate: () => void;
     isActive: boolean;
     onSetActive: () => void;
     onSetInactive: () => void;
     choices: any[];
     questionTexture?: string;
-    submitTexture?: string;
-    onComplete: () => void;
 }) => {
     const groupRef = useRef<THREE.Group>(null);
     const { camera } = useThree();
@@ -238,14 +236,13 @@ const QCMHotspotWithLookat = ({
             <QCMhotspot
                 texturePath={texturePath}
                 position={[0, 0, 0]}
+                onComplete={onComplete}
                 choices={choices}
                 onActivate={onActivate}
                 isActive={isActive}
                 onSetActive={onSetActive}
                 onSetInactive={onSetInactive}
                 questionTexture={questionTexture}
-                submitTexture={submitTexture}
-                onComplete={onComplete}
             />
         </group>
     );
@@ -291,13 +288,11 @@ const LinkHotspotWithLookat = ({
 const ActivAIHotspotWithLookat = ({ 
     position, 
     slug,
-    isVisible,
-    onComplete
+    isVisible
 }: {
     position: [number, number, number];
     slug: string;
     isVisible: boolean;
-    onComplete: () => void;
 }) => {
     const groupRef = useRef<THREE.Group>(null);
     const { camera } = useThree();
@@ -314,22 +309,12 @@ const ActivAIHotspotWithLookat = ({
                 slug={slug}
                 position={[0, 0, 0]}
                 isVisible={isVisible}
-                onQuit={onComplete}
             />
         </group>
     );
 };
 
-
-const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: { 
-    jsonPath: string;
-    onOrderUpdate?: (order: number, completedHotspots: Set<string>, totalRequiredHotspots: number) => void;
-    initialState?: {
-        currentOrder: number;
-        completedHotspots: Set<string>;
-        currentSceneId?: string;
-    } | null;
-}) => {
+const SceneViewer = ({ jsonPath }: { jsonPath: string }) => {
     const [sceneState, setSceneState] = useState({
         currentScene: null as ProcessedScene | null,
         isPreloading: true,
@@ -341,18 +326,6 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
     });
     
     const orbitControlsRef = useRef<any>(null);
-
-    // Initialize state from initialState prop if provided
-    useEffect(() => {
-        if (initialState) {
-            console.log('SceneViewer: Restoring initial state:', initialState);
-            setSceneState(prev => ({
-                ...prev,
-                currentOrder: initialState.currentOrder,
-                completedHotspots: new Set(initialState.completedHotspots)
-            }));
-        }
-    }, [initialState]);
 
     // Get all ordered hotspots across all scenes
     const allOrderedHotspots = useMemo(() => {
@@ -367,54 +340,24 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
         );
 
         return allHotspots
-            .filter((h: any) => h.order !== undefined && h.order !== -1)
+            .filter((h: any) => h.order !== undefined)
             .sort((a: any, b: any) => a.order - b.order);
     }, [sceneState.currentScene]);
 
-    // Get all required hotspots across all scenes
-    const allRequiredHotspots = useMemo(() => {
-        if (!sceneState.currentScene) return [];
-        
-        const allScenes = dataManager.getAllScenes();
-        const allHotspots = allScenes.flatMap(scene => 
-            scene.hotspots?.map((hotspot: any) => ({
-                ...hotspot,
-                sceneId: scene.id
-            })) || []
-        );
-
-        return allHotspots.filter((hotspot: any) => 
-            hotspot.required === true || 
-            (hotspot.type === 'question' && (hotspot.subtype === 'qcu' || hotspot.subtype === 'qcm')) ||
-            hotspot.type === 'activai'
-        );
-    }, [sceneState.currentScene]);
-
-    // Get hotspots for current order in current scene
+    // Get hotspots for current order
     const currentOrderHotspots = useMemo(() => {
-        if (!sceneState.currentScene) return [];
-        
-        return sceneState.currentScene.hotspots?.filter((hotspot: any) => 
-            hotspot.order === sceneState.currentOrder
-        ) || [];
-    }, [sceneState.currentScene, sceneState.currentOrder]);
+        return allOrderedHotspots.filter((hotspot: any) => hotspot.order === sceneState.currentOrder);
+    }, [allOrderedHotspots, sceneState.currentOrder]);
 
     // Get visible hotspots for current scene
     const visibleHotspots = useMemo(() => {
         if (!sceneState.currentScene) return [];
 
         return sceneState.currentScene.hotspots?.filter((hotspot: any) => {
-            // If hotspot has no order or order is -1, always show it
-            if (hotspot.order === undefined || hotspot.order === -1) return true;
+            // If hotspot has no order, always show it
+            if (hotspot.order === undefined) return true;
             
-            // For info, QCU, QCM, and ActivAI hotspots: show if order is <= current order (accumulative)
-            if (hotspot.type === 'info' || 
-                (hotspot.type === 'question' && (hotspot.subtype === 'qcu' || hotspot.subtype === 'qcm')) ||
-                hotspot.type === 'activai') {
-                return hotspot.order <= sceneState.currentOrder;
-            }
-            
-            // For other hotspot types (link, intro, image): show only at exact order
+            // Show hotspot if it's in the current order
             return hotspot.order === sceneState.currentOrder;
         }) || [];
     }, [sceneState.currentScene, sceneState.currentOrder]);
@@ -423,95 +366,36 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
     const allRequiredCompleted = useMemo(() => {
         const requiredHotspots = currentOrderHotspots.filter((hotspot: any) => 
             hotspot.required === true || 
-            (hotspot.type === 'question' && (hotspot.subtype === 'qcu' || hotspot.subtype === 'qcm')) ||
-            hotspot.type === 'activai'
+            (hotspot.type === 'question' && (hotspot.subtype === 'qcu' || hotspot.subtype === 'qcm'))
         );
         
         return requiredHotspots.length === 0 || 
                requiredHotspots.every((hotspot: any) => sceneState.completedHotspots.has(hotspot.id));
     }, [currentOrderHotspots, sceneState.completedHotspots]);
 
-    // Calculate completion percentage
-    const completionPercentage = useMemo(() => {
-        const completedRequired = allRequiredHotspots.filter((hotspot: any) => 
-            sceneState.completedHotspots.has(hotspot.id)
-        ).length;
-        
-        return allRequiredHotspots.length > 0 ? 
-            Math.round((completedRequired / allRequiredHotspots.length) * 100) : 0;
-    }, [allRequiredHotspots, sceneState.completedHotspots]);
-
-    // Get only completed required hotspots for progress calculation
-    const completedRequiredHotspots = useMemo(() => {
-        return allRequiredHotspots.filter((hotspot: any) => 
-            sceneState.completedHotspots.has(hotspot.id)
-        );
-    }, [allRequiredHotspots, sceneState.completedHotspots]);
-
-    // Notify parent component of order and completion updates
+    // Auto-advance order when all required hotspots are completed
     useEffect(() => {
-        if (onOrderUpdate) {
-            const completedRequiredIds = new Set(completedRequiredHotspots.map(h => h.id));
-            onOrderUpdate(sceneState.currentOrder, completedRequiredIds, allRequiredHotspots.length);
-        }
-    }, [sceneState.currentOrder, completedRequiredHotspots.length, allRequiredHotspots.length, onOrderUpdate]);
-
-    // Auto-advance order when all required hotspots are completed (only if not in restoration mode)
-    useEffect(() => {
-        // Skip auto-advance if we're in the initial restoration phase
-        if (initialState && sceneState.currentOrder === initialState.currentOrder && 
-            sceneState.completedHotspots.size === initialState.completedHotspots.size) {
-            return;
-        }
-
         if (allRequiredCompleted && currentOrderHotspots.length > 0) {
-            const nextOrder = sceneState.currentOrder + 1;
-            const hasNextOrder = allOrderedHotspots.some((h: any) => h.order === nextOrder);
-            
-            if (hasNextOrder) {
+            const hasNonLinkHotspots = currentOrderHotspots.some((h: any) => h.type !== 'link');
+            if (hasNonLinkHotspots) {
                 setSceneState(prev => ({
                     ...prev,
-                    currentOrder: nextOrder
+                    currentOrder: prev.currentOrder + 1
                 }));
             }
         }
-    }, [allRequiredCompleted, currentOrderHotspots, sceneState.currentOrder, allOrderedHotspots, initialState, sceneState.completedHotspots.size]);
-
-    // Additional check: if current scene has no hotspots for current order, advance to next order (only if not in restoration mode)
-    useEffect(() => {
-        // Skip auto-advance if we're in the initial restoration phase
-        if (initialState && sceneState.currentOrder === initialState.currentOrder && 
-            sceneState.completedHotspots.size === initialState.completedHotspots.size) {
-            return;
-        }
-
-        if (sceneState.currentScene && currentOrderHotspots.length === 0) {
-            const nextOrder = sceneState.currentOrder + 1;
-            const hasNextOrder = allOrderedHotspots.some((h: any) => h.order === nextOrder);
-            
-            if (hasNextOrder) {
-                setSceneState(prev => ({
-                    ...prev,
-                    currentOrder: nextOrder
-                }));
-            }
-        }
-    }, [sceneState.currentScene, currentOrderHotspots.length, sceneState.currentOrder, allOrderedHotspots, initialState, sceneState.completedHotspots.size]);
+    }, [allRequiredCompleted, currentOrderHotspots]);
 
     // Debug logging
     useEffect(() => {
         console.log(`Current Order: ${sceneState.currentOrder}`);
-        console.log(`Current Scene: ${sceneState.currentScene?.id}`);
         console.log(`Hotspots in current order: ${currentOrderHotspots.map((h: any) => `${h.id}(${h.type})`).join(', ')}`);
-        console.log(`Visible hotspots in current scene: ${visibleHotspots.map((h: any) => `${h.id}(order:${h.order},type:${h.type})`).join(', ')}`);
+        console.log(`Visible hotspots in current scene: ${visibleHotspots.map((h: any) => h.id).join(', ')}`);
         console.log(`All required completed: ${allRequiredCompleted}`);
-        console.log(`All completed hotspots: ${Array.from(sceneState.completedHotspots).join(', ')}`);
-        console.log(`Completed required hotspots: ${completedRequiredHotspots.map((h: any) => h.id).join(', ')}`);
-        console.log(`All required hotspots: ${allRequiredHotspots.map((h: any) => h.id).join(', ')}`);
-        console.log(`All ordered hotspots: ${allOrderedHotspots.map((h: any) => `${h.id}(order:${h.order})`).join(', ')}`);
-        console.log(`Completion percentage: ${completionPercentage}%`);
-    }, [sceneState.currentOrder, sceneState.currentScene, currentOrderHotspots, visibleHotspots, allRequiredCompleted, sceneState.completedHotspots, completedRequiredHotspots, allRequiredHotspots, allOrderedHotspots, completionPercentage]);
+        console.log(`Current scene ID: ${sceneState.currentScene?.id}`);
+    }, [sceneState.currentOrder, currentOrderHotspots, visibleHotspots, allRequiredCompleted, sceneState.currentScene]);
 
+    // Load initial data
     useEffect(() => {
         const loadData = async () => {
             try {
@@ -521,29 +405,11 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
                 const scene = dataManager.getCurrentScene();
                 const allScenes = dataManager.getAllScenes();
                 
-                // If we have initial state with a different scene, switch to it now
-                if (initialState?.currentSceneId && initialState.currentSceneId !== scene?.id) {
-                    console.log(`SceneViewer: Switching to saved scene during load: ${initialState.currentSceneId}`);
-                    const switchSuccess = dataManager.switchToScene(initialState.currentSceneId);
-                    if (switchSuccess) {
-                        const restoredScene = dataManager.getCurrentScene();
-                        setSceneState(prev => ({ 
-                            ...prev,
-                            currentScene: restoredScene,
-                        }));
-                    } else {
-                        console.error(`Failed to switch to saved scene: ${initialState.currentSceneId}`);
-                        setSceneState(prev => ({ 
-                            ...prev,
-                            currentScene: scene,
-                        }));
-                    }
-                } else {
-                    setSceneState(prev => ({ 
-                        ...prev,
-                        currentScene: scene,
-                    }));
-                }
+                setSceneState(prev => ({ 
+                    ...prev,
+                    currentScene: scene,
+                    currentOrder: 0
+                }));
 
                 if (allScenes.length > 0) {
                     await textureManager.preloadAllSceneTextures(allScenes);
@@ -557,11 +423,15 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
         };
 
         loadData();
-    }, [jsonPath, initialState?.currentSceneId]);
+    }, [jsonPath]);
 
+    // Handle scene changes
     useEffect(() => {
         const unsubscribe = dataManager.subscribe((state) => {
             setSceneState(prev => {
+                console.log(`Scene changed to: ${state.currentScene?.id}`);
+                console.log(`Current order: ${prev.currentOrder}`);
+                
                 return {
                     ...prev,
                     currentScene: state.currentScene,
@@ -582,23 +452,12 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
         }
     }, []);
 
-    const handleLinkClick = useCallback((sceneId: string, hotspotId: string) => {
-        console.log(`Link hotspot clicked: ${hotspotId}, switching to scene: ${sceneId}`);
-        
-        // Mark link hotspot as completed
+    const handleLinkClick = useCallback((sceneId: string) => {
+        // Increment order for link hotspots
         setSceneState(prev => ({
             ...prev,
-            completedHotspots: new Set([...prev.completedHotspots, hotspotId])
+            currentOrder: prev.currentOrder + 1
         }));
-        
-        // Advance order when link hotspot is completed
-        setSceneState(prev => {
-            console.log(`Advancing order from ${prev.currentOrder} to ${prev.currentOrder + 1}`);
-            return {
-                ...prev,
-                currentOrder: prev.currentOrder + 1
-            };
-        });
         
         // Switch to the target scene
         handleSceneSwitch(sceneId);
@@ -616,64 +475,20 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
         setSceneState(prev => ({ ...prev, activeUIHotspotId: hotspotId }));
     }, []);
 
-    const handleHotspotUIDeactivate = useCallback(() => {
+    const handleHotspotUIDeactivate = useCallback((hotspotId: string) => {
         setSceneState(prev => ({ ...prev, activeUIHotspotId: null }));
-    }, []);
-    
-    const handleScenarioEnd = useCallback(() => {
-        console.log('Scenario ended - user clicked Quitter');
     }, []);
 
     const handleHotspotComplete = useCallback((hotspotId: string) => {
-        console.log(`Hotspot completed: ${hotspotId}`);
-        setSceneState(prev => {
-            const newCompletedHotspots = new Set([...prev.completedHotspots, hotspotId]);
-            console.log(`Updated completed hotspots: ${Array.from(newCompletedHotspots).join(', ')}`);
-            
-            // Check if this is an ActivAI hotspot and increment order
-            const currentScene = prev.currentScene;
-            const completedHotspot = currentScene?.hotspots?.find((h: any) => h.id === hotspotId);
-            console.log(`Completed hotspot type: ${completedHotspot?.type}, order: ${completedHotspot?.order}`);
-            
-            let newOrder = prev.currentOrder;
-            if (completedHotspot?.type === 'activai') {
-                const nextOrder = prev.currentOrder + 1;
-                console.log(`Checking for next order: ${nextOrder}`);
-                console.log(`All ordered hotspots: ${allOrderedHotspots.map((h: any) => `${h.id}(order:${h.order})`).join(', ')}`);
-                
-                // Try to find next order in allOrderedHotspots first
-                let hasNextOrder = allOrderedHotspots.some((h: any) => h.order === nextOrder);
-                console.log(`Has next order from allOrderedHotspots: ${hasNextOrder}`);
-                
-                // Fallback: check if there are any hotspots with higher order numbers
-                if (!hasNextOrder) {
-                    const allScenes = dataManager.getAllScenes();
-                    const allHotspots = allScenes.flatMap(scene => 
-                        scene.hotspots?.map((hotspot: any) => ({
-                            ...hotspot,
-                            sceneId: scene.id
-                        })) || []
-                    );
-                    hasNextOrder = allHotspots.some((h: any) => h.order === nextOrder);
-                    console.log(`Has next order from fallback check: ${hasNextOrder}`);
-                }
-                
-                if (hasNextOrder) {
-                    newOrder = nextOrder;
-                    console.log(`ActivAI completed, advancing order from ${prev.currentOrder} to ${newOrder}`);
-                } else {
-                    console.log(`ActivAI completed but no next order available (current: ${prev.currentOrder})`);
-                }
-            }
-            
-            console.log(`Final new order: ${newOrder}`);
-            return {
-                ...prev,
-                completedHotspots: newCompletedHotspots,
-                currentOrder: newOrder
-            };
-        });
-    }, [allOrderedHotspots]);
+        setSceneState(prev => ({
+            ...prev,
+            completedHotspots: new Set([...prev.completedHotspots, hotspotId])
+        }));
+    }, []);
+
+    const handleScenarioEnd = useCallback(() => {
+        console.log('Scenario ended - user clicked Quitter');
+    }, []);
 
     if (!sceneState.currentScene || !sceneState.currentScene.panoramaUrl) {
         return (
@@ -708,7 +523,11 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
                     orbitControlsRef={orbitControlsRef}
                 />
 
-                {visibleHotspots.map((hotspot: any) => {
+                {sceneState.currentScene.hotspots?.map((hotspot: any) => {
+                    if (!visibleHotspots.some((h: any) => h.id === hotspot.id)) {
+                        return null;
+                    }
+
                     if (hotspot.type === 'intro') {
                         return (
                             <CameraFacingHotspot 
@@ -730,12 +549,12 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
                                 key={hotspot.id}
                                 texturePath={hotspot.texturePath}
                                 position={hotspot.position}
+                                onComplete={() => handleHotspotComplete(hotspot.id)}
                                 onActivate={() => handleHotspotActivate(hotspot.id, hotspot.position)}
                                 isActive={sceneState.activeUIHotspotId === hotspot.id}
                                 onSetActive={() => handleHotspotUIActivate(hotspot.id)}
-                                onSetInactive={handleHotspotUIDeactivate}
+                                onSetInactive={() => handleHotspotUIDeactivate(hotspot.id)}
                                 choices={hotspot.choices}
-                                onComplete={() => handleHotspotComplete(hotspot.id)}
                             />
                         );
                     }
@@ -746,14 +565,13 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
                                 key={hotspot.id}
                                 texturePath={hotspot.texturePath}
                                 position={hotspot.position}
+                                onComplete={() => handleHotspotComplete(hotspot.id)}
                                 onActivate={() => handleHotspotActivate(hotspot.id, hotspot.position)}
                                 isActive={sceneState.activeUIHotspotId === hotspot.id}
                                 onSetActive={() => handleHotspotUIActivate(hotspot.id)}
-                                onSetInactive={handleHotspotUIDeactivate}
+                                onSetInactive={() => handleHotspotUIDeactivate(hotspot.id)}
                                 choices={hotspot.choices}
                                 questionTexture={hotspot.questionTexture}
-                                submitTexture={hotspot.submitTexture}
-                                onComplete={() => handleHotspotComplete(hotspot.id)}
                             />
                         );
                     }
@@ -764,11 +582,11 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
                                 key={hotspot.id}
                                 texturePath={hotspot.texturePath}
                                 position={hotspot.position} 
+                                onComplete={() => handleHotspotComplete(hotspot.id)}
                                 onActivate={() => handleHotspotActivate(hotspot.id, hotspot.position)}
                                 isActive={sceneState.activeUIHotspotId === hotspot.id}
                                 onSetActive={() => handleHotspotUIActivate(hotspot.id)}
-                                onSetInactive={handleHotspotUIDeactivate}
-                                onComplete={() => handleHotspotComplete(hotspot.id)}
+                                onSetInactive={() => handleHotspotUIDeactivate(hotspot.id)}
                             />
                         );
                     }
@@ -779,7 +597,7 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
                                 key={hotspot.id} 
                                 texturePath={hotspot.imagePath} 
                                 position={hotspot.position} 
-                                onClickBehaviour={() => handleLinkClick(hotspot.targetScene, hotspot.id)}
+                                onClickBehaviour={() => handleLinkClick(hotspot.targetScene)}
                                 onActivate={() => handleHotspotActivate(hotspot.id, hotspot.position)}
                             />
                         );
@@ -799,17 +617,12 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
 
                     if (hotspot.type === 'activai') {
                         return (
-                            <CameraFacingHotspot 
+                            <ActivAIHotspotWithLookat
                                 key={hotspot.id}
-                                scale={[hotspot.size || 1, hotspot.size || 1, hotspot.size || 1]}
-                            >
-                                <Layout 
-                                    slug={hotspot.slug}
-                                    position={[0, 0.2, -2]}
-                                    isVisible={true}
-                                    onQuit={() => handleHotspotComplete(hotspot.id)}
-                                />
-                            </CameraFacingHotspot>
+                                position={hotspot.position}
+                                slug={hotspot.slug}
+                                isVisible={true}
+                            />
                         );
                     }
 

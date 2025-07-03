@@ -454,6 +454,44 @@ textarea:focus {
   text-decoration: underline;
 }
 
+.button-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.fermer-button {
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+  letter-spacing: 0.01em;
+  min-width: 120px;
+}
+
+.fermer-button:hover:not(:disabled) {
+  background: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+}
+
+.fermer-button:active {
+  transform: translateY(0);
+}
+
+.fermer-button:disabled {
+  background: #adb5bd;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 /* Responsive adjustments for smaller screens */
 @media (max-width: 480px) {
   .form-container {

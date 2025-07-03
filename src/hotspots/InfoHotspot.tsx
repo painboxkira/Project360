@@ -1,29 +1,10 @@
-import { useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useTextureArrayWithFallbacks } from "../core/hooks/useTexture";
 
-// Global texture cache for all hotspot textures
-const hotspotTextureCache = new Map<string, THREE.Texture>();
-
-// Preload all hotspot textures upfront
+// Legacy export for backward compatibility
 export const preloadHotspotTextures = (texturePaths: string[]) => {
-    texturePaths.forEach(path => {
-        if (path && !hotspotTextureCache.has(path)) {
-            const texture = new THREE.TextureLoader().load(path);
-            hotspotTextureCache.set(path, texture);
-        }
-    });
-};
-
-const loadHotspotTexture = (texturePath: string): THREE.Texture => {
-    if (hotspotTextureCache.has(texturePath)) {
-        return hotspotTextureCache.get(texturePath)!;
-    }
-    
-    // Fallback texture if not preloaded
-    const texture = new THREE.TextureLoader().load(texturePath);
-    hotspotTextureCache.set(texturePath, texture);
-    return texture;
+    console.warn('preloadHotspotTextures is deprecated. Use textureManager.preloadAllSceneTextures instead.');
 };
 
 interface InfoHotspotProps {
@@ -49,26 +30,14 @@ const InfoHotspot = ({
     const [isCompleted, setIsCompleted] = useState(false);
     const groupRef = useRef<THREE.Group>(null);
 
-    // Preload all textures for this hotspot on mount
-    useEffect(() => {
-        preloadHotspotTextures(texturePath);
-    }, [texturePath]);
+    // Load textures from global cache with fallbacks
+    const textures = useTextureArrayWithFallbacks(texturePath, [
+        "/textures/questiondef.png",
+        "/textures/infodef.png", 
+        "/textures/complete.png"
+    ]);
 
-    // Load textures with caching
-    const initialTexture = useMemo(() => 
-        loadHotspotTexture(texturePath[0] || "/textures/questiondef.png"), 
-        [texturePath[0]]
-    );
-
-    const completedTexture = useMemo(() => 
-        loadHotspotTexture(texturePath[2] || "/textures/complete.png"), 
-        [texturePath[2]]
-    );
-
-    const tooltipTexture = useMemo(() => 
-        loadHotspotTexture(texturePath[1] || "/textures/infodef.png"), 
-        [texturePath[1]]
-    );
+    const [initialTexture, tooltipTexture, completedTexture] = textures;
 
     const handleMainClick = useCallback(() => {
         // Allow revisiting even after completion

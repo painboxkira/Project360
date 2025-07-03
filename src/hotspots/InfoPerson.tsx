@@ -1,12 +1,10 @@
-import { useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import {useState} from "react";
+import { useTextures } from "../core/hooks/useTexture";
 
 
 const InfoPerson = ({texturePath,position}:{texturePath:[string,string,string],position:THREE.Vector3}) => {
-    const texture1 = useLoader(THREE.TextureLoader, texturePath[0]);
-    const texture2 = useLoader(THREE.TextureLoader, texturePath[1]);
-    const texture3 = useLoader(THREE.TextureLoader, texturePath[2]);
+    const [texture1, texture2, texture3] = useTextures(texturePath);
     const [isHovered, setIsHovered] = useState(false);
     const [isClicked, setIsClicked] = useState(false);
     const [isOpen, setIsOpen] = useState(false);

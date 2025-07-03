@@ -376,26 +376,36 @@ const Layout: React.FC<LayoutProps> = ({
             disabled={isSubmitting}
           />
 
-          <button 
-            className={`submit-button ${isSubmitting ? 'loading' : ''}`} 
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <span className="submit-button-icon"></span>
-                Envoi en cours...
-              </>
-            ) : (
-              <>
-                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14.3333 1L9.66667 14.3333L7 8.33333L1 5.66667L14.3333 1Z" stroke="#FAFAFA" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"></path>
-                  <path d="M14.3333 1L7 8.33333" stroke="#FAFAFA" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"></path>
-                </svg>
-                Envoyer la réponse
-              </>
-            )}
-          </button>
+          <div className="button-group">
+            <button 
+              className={`submit-button ${isSubmitting ? 'loading' : ''}`} 
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="submit-button-icon"></span>
+                  Envoi en cours...
+                </>
+              ) : (
+                <>
+                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14.3333 1L9.66667 14.3333L7 8.33333L1 5.66667L14.3333 1Z" stroke="#FAFAFA" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"></path>
+                    <path d="M14.3333 1L7 8.33333" stroke="#FAFAFA" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"></path>
+                  </svg>
+                  Envoyer la réponse
+                </>
+              )}
+            </button>
+            
+            <button 
+              className="fermer-button" 
+              onClick={onQuit}
+              disabled={isSubmitting}
+            >
+              Fermer
+            </button>
+          </div>
         </div>
       </div>
     </Html>

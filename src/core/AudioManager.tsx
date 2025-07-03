@@ -126,7 +126,7 @@ const AudioManager = ({ audioConfig, onHotspotComplete, completedHotspots }: Aud
 
     const { trigger_type, trigger, fade_duration = 2 } = audioConfig;
 
-    if (trigger && completedHotspots.has(trigger)) {
+    if (trigger) {
       console.log(`Audio trigger activated: ${trigger_type} for hotspot ${trigger}`);
       
       switch (trigger_type) {

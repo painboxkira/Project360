@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { useMemo, useRef, useState } from "react";
+import { useTextureArrayWithFallbacks, useTextures } from "../core/hooks/useTexture";
 
 
 interface Choice {
@@ -46,22 +47,16 @@ const QCUhotspot = ({texturePath, position, onComplete, choices, onActivate, isA
     });
     
 
-    // Load textures directly with useMemo
-    const initialTexture = useMemo(() => {
-        return new THREE.TextureLoader().load(checkedTexturePath[0]);
-    }, [checkedTexturePath]);
+    // Load textures from global cache with fallbacks
+    const textures = useTextureArrayWithFallbacks(checkedTexturePath, [
+        "/textures/questiondef.png",
+        "/textures/complete.png",
+        "/textures/feedback.png"
+    ]);
 
-    const completedTexture = useMemo(() => {
-        return new THREE.TextureLoader().load(checkedTexturePath[1]);
-    }, [checkedTexturePath]);
-
-    const feedbackTexture = useMemo(() => {
-        return new THREE.TextureLoader().load(checkedTexturePath[2]);
-    }, [checkedTexturePath]);
-
-    const choicesTextures = useMemo(() => {
-        return choices.map(choice => new THREE.TextureLoader().load(choice.texture));
-    }, [choices]);
+    const [initialTexture, completedTexture, feedbackTexture] = textures;
+    
+    const choicesTextures = useTextures(choices.map(choice => choice.texture));
 
     const handleChoiceSelect = (choice: Choice) => {
         setSelectedChoice(choice);
@@ -74,7 +69,7 @@ const QCUhotspot = ({texturePath, position, onComplete, choices, onActivate, isA
                 setIsCompleted(true);
                 onSetInactive?.();
                 onComplete();
-            }, 500);
+            }, 0);
         } else {
             setIsCorrect(false);
             setIsIncorrect(true);

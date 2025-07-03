@@ -22,25 +22,8 @@
           "isCompleted": false,
           "order": 0,
           "required": true,
-          "imagePath": "./textures/link_001.png"
-        },
-        {
-          "id": "hotspot_001_return",
-          "title": "A vous de jouer ! (Return)",
-          "type": "link",
-          "subtype": "scene_transition",
-          "text": "A vous de jouer !",
-          "targetScene": "kitchen-training",
-          "position": [
-            0.6035,
-            -0.1354,
-            2.9299
-          ],
-          "size": 1.5,
-          "isCompleted": false,
-          "order": 3,
-          "required": true,
-          "imagePath": "./textures/link_003.png"
+          "imagePath": "./textures/link_001.png",
+          "returnImagePath": "./textures/link_003.png"
         },
         {
           "id": "hotspot_key",
@@ -302,8 +285,7 @@
             "./textures/complete.png",
             "./textures/feedback.png"
           ],
-          "questionTexture": "./textures/qcu_qcm_001_question.png",
-          "submitTexture": "./textures/submit.png"
+          "questionTexture": "./textures/qcu_qcm_001_question.png"
         },
         {
           "id": "activai_001",
@@ -405,7 +387,7 @@
           ],
           "width": 1.5,
           "height": 0.25,
-          "order": -1
+          "order": 3
         }
       ]
     }

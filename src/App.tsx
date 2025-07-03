@@ -1,11 +1,18 @@
-import React from "react";
-import SceneViewer from "./core/SceneViewer";
+import React from 'react';
+import EventManager from './core/eventManager/eventManager';
+import './App.css'
 
-
-const App: React.FC = () => {
+function App() {
   return (
-    <div className="App" style={{width: '100vw', height: '100vh'}}>
-      <SceneViewer jsonPath="/complete-scene.json" />
+    // --- STYLE CHANGE: Added 'flex flex-col' to create a vertical flex container ---
+    <div style={{ height: '100vh' ,width:'98%'}} >
+     
+
+      {/* --- STYLE CHANGE: 'flex-1' makes the main section grow to fill available space --- */}
+      {/* 'overflow-y-auto' ensures only this section scrolls if content is too long */}
+      
+        <EventManager jsonPath='./events.json' />
+  
     </div>
   );
 }
