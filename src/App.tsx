@@ -11,7 +11,7 @@ function App() {
       {/* --- STYLE CHANGE: 'flex-1' makes the main section grow to fill available space --- */}
       {/* 'overflow-y-auto' ensures only this section scrolls if content is too long */}
       
-        <EventManager jsonPath='./events.json' />
+        <EventManager jsonPath='./complete-scene.json' />
   
     </div>
   );

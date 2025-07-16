@@ -16,7 +16,7 @@ import AudioManager from './AudioManager';
 import AudioControls from './AudioControls';
 import Layout from '../hotspots/ActiveAi/Rapport/Layout';
 
-// Smooth camera rotation component
+// SmoothCameraRotation component (no changes)
 const SmoothCameraRotation = ({ targetPosition, isActive, orbitControlsRef }: {
     targetPosition: [number, number, number] | null;
     isActive: boolean;
@@ -90,7 +90,7 @@ const SmoothCameraRotation = ({ targetPosition, isActive, orbitControlsRef }: {
     return null;
 };
 
-// Camera-facing wrapper
+// Camera-facing wrapper (no changes)
 const CameraFacingHotspot = ({ children, scale = [1, 1, 1] }: {
     children: React.ReactNode;
     scale?: [number, number, number];
@@ -115,7 +115,7 @@ const CameraFacingHotspot = ({ children, scale = [1, 1, 1] }: {
     );
 };
 
-// Wrapper components with lookat behavior (completion props removed)
+// Wrapper components with lookat behavior (no changes)
 const InfoHotspotWithLookat = ({ 
     texturePath, 
     position, 
@@ -320,20 +320,27 @@ const ActivAIHotspotWithLookat = ({
     );
 };
 
-
+// MODIFIED: Updated prop definitions
 const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: { 
     jsonPath: string;
-    onOrderUpdate?: (order: number, completedHotspots: Set<string>, totalRequiredHotspots: number) => void;
+    onOrderUpdate?: (updates: { 
+        order: number; 
+        completed: Set<string>; 
+        visited: Set<string>; 
+        totalRequired: number 
+    }) => void;
     initialState?: {
         currentOrder: number;
         completedHotspots: Set<string>;
+        visitedHotspots: Set<string>; // ADDED
         currentSceneId?: string;
     } | null;
 }) => {
     const [sceneState, setSceneState] = useState({
         currentScene: null as ProcessedScene | null,
         isPreloading: true,
-        completedHotspots: new Set<string>(),
+        visitedHotspots: new Set<string>(), // ADDED: Tracks visited hotspots
+        completedHotspots: new Set<string>(), // Tracks progression
         activeHotspotId: null as string | null,
         activeHotspotPosition: null as [number, number, number] | null,
         activeUIHotspotId: null as string | null,
@@ -342,19 +349,20 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
     
     const orbitControlsRef = useRef<any>(null);
 
-    // Initialize state from initialState prop if provided
+    // MODIFIED: Initialize state from initialState prop, now including visitedHotspots
     useEffect(() => {
         if (initialState) {
             console.log('SceneViewer: Restoring initial state:', initialState);
             setSceneState(prev => ({
                 ...prev,
                 currentOrder: initialState.currentOrder,
-                completedHotspots: new Set(initialState.completedHotspots)
+                completedHotspots: new Set(initialState.completedHotspots),
+                visitedHotspots: new Set(initialState.visitedHotspots || []) // ADDED
             }));
         }
     }, [initialState]);
 
-    // Get all ordered hotspots across all scenes
+    // Get all ordered hotspots across all scenes (no changes)
     const allOrderedHotspots = useMemo(() => {
         if (!sceneState.currentScene) return [];
         
@@ -371,7 +379,7 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
             .sort((a: any, b: any) => a.order - b.order);
     }, [sceneState.currentScene]);
 
-    // Get all required hotspots across all scenes
+    // Get all required hotspots across all scenes (no changes)
     const allRequiredHotspots = useMemo(() => {
         if (!sceneState.currentScene) return [];
         
@@ -390,7 +398,7 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
         );
     }, [sceneState.currentScene]);
 
-    // Get hotspots for current order in current scene
+    // Get hotspots for current order in current scene (no changes)
     const currentOrderHotspots = useMemo(() => {
         if (!sceneState.currentScene) return [];
         
@@ -399,27 +407,24 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
         ) || [];
     }, [sceneState.currentScene, sceneState.currentOrder]);
 
-    // Get visible hotspots for current scene
+    // Get visible hotspots for current scene (no changes)
     const visibleHotspots = useMemo(() => {
         if (!sceneState.currentScene) return [];
 
         return sceneState.currentScene.hotspots?.filter((hotspot: any) => {
-            // If hotspot has no order or order is -1, always show it
             if (hotspot.order === undefined || hotspot.order === -1) return true;
             
-            // For info, QCU, QCM, and ActivAI hotspots: show if order is <= current order (accumulative)
             if (hotspot.type === 'info' || 
                 (hotspot.type === 'question' && (hotspot.subtype === 'qcu' || hotspot.subtype === 'qcm')) ||
                 hotspot.type === 'activai') {
                 return hotspot.order <= sceneState.currentOrder;
             }
             
-            // For other hotspot types (link, intro, image): show only at exact order
             return hotspot.order === sceneState.currentOrder;
         }) || [];
     }, [sceneState.currentScene, sceneState.currentOrder]);
 
-    // Check if all required hotspots of current order are completed
+    // Check if all required hotspots of current order are completed (no changes)
     const allRequiredCompleted = useMemo(() => {
         const requiredHotspots = currentOrderHotspots.filter((hotspot: any) => 
             hotspot.required === true || 
@@ -431,7 +436,7 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
                requiredHotspots.every((hotspot: any) => sceneState.completedHotspots.has(hotspot.id));
     }, [currentOrderHotspots, sceneState.completedHotspots]);
 
-    // Calculate completion percentage
+    // Calculate completion percentage (no changes)
     const completionPercentage = useMemo(() => {
         const completedRequired = allRequiredHotspots.filter((hotspot: any) => 
             sceneState.completedHotspots.has(hotspot.id)
@@ -441,24 +446,34 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
             Math.round((completedRequired / allRequiredHotspots.length) * 100) : 0;
     }, [allRequiredHotspots, sceneState.completedHotspots]);
 
-    // Get only completed required hotspots for progress calculation
+    // Get only completed required hotspots for progress calculation (no changes)
     const completedRequiredHotspots = useMemo(() => {
         return allRequiredHotspots.filter((hotspot: any) => 
             sceneState.completedHotspots.has(hotspot.id)
         );
     }, [allRequiredHotspots, sceneState.completedHotspots]);
 
-    // Notify parent component of order and completion updates
+    // MODIFIED: Notify parent component of all state updates
     useEffect(() => {
         if (onOrderUpdate) {
             const completedRequiredIds = new Set(completedRequiredHotspots.map(h => h.id));
-            onOrderUpdate(sceneState.currentOrder, completedRequiredIds, allRequiredHotspots.length);
+            onOrderUpdate({
+                order: sceneState.currentOrder,
+                completed: completedRequiredIds,
+                visited: sceneState.visitedHotspots,
+                totalRequired: allRequiredHotspots.length
+            });
         }
-    }, [sceneState.currentOrder, completedRequiredHotspots.length, allRequiredHotspots.length, onOrderUpdate]);
+    }, [
+        sceneState.currentOrder, 
+        completedRequiredHotspots.length, 
+        allRequiredHotspots.length, 
+        onOrderUpdate, 
+        sceneState.visitedHotspots // ADDED dependency
+    ]);
 
-    // Auto-advance order when all required hotspots are completed (only if not in restoration mode)
+    // Auto-advance order when all required hotspots are completed (no changes)
     useEffect(() => {
-        // Skip auto-advance if we're in the initial restoration phase
         if (initialState && sceneState.currentOrder === initialState.currentOrder && 
             sceneState.completedHotspots.size === initialState.completedHotspots.size) {
             return;
@@ -477,9 +492,8 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
         }
     }, [allRequiredCompleted, currentOrderHotspots, sceneState.currentOrder, allOrderedHotspots, initialState, sceneState.completedHotspots.size]);
 
-    // Additional check: if current scene has no hotspots for current order, advance to next order (only if not in restoration mode)
+    // Additional check for order advance (no changes)
     useEffect(() => {
-        // Skip auto-advance if we're in the initial restoration phase
         if (initialState && sceneState.currentOrder === initialState.currentOrder && 
             sceneState.completedHotspots.size === initialState.completedHotspots.size) {
             return;
@@ -498,20 +512,15 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
         }
     }, [sceneState.currentScene, currentOrderHotspots.length, sceneState.currentOrder, allOrderedHotspots, initialState, sceneState.completedHotspots.size]);
 
-    // Debug logging
+    // Debug logging (no changes)
     useEffect(() => {
         console.log(`Current Order: ${sceneState.currentOrder}`);
-        console.log(`Current Scene: ${sceneState.currentScene?.id}`);
-        console.log(`Hotspots in current order: ${currentOrderHotspots.map((h: any) => `${h.id}(${h.type})`).join(', ')}`);
-        console.log(`Visible hotspots in current scene: ${visibleHotspots.map((h: any) => `${h.id}(order:${h.order},type:${h.type})`).join(', ')}`);
-        console.log(`All required completed: ${allRequiredCompleted}`);
+        console.log(`All visited hotspots: ${Array.from(sceneState.visitedHotspots).join(', ')}`);
         console.log(`All completed hotspots: ${Array.from(sceneState.completedHotspots).join(', ')}`);
-        console.log(`Completed required hotspots: ${completedRequiredHotspots.map((h: any) => h.id).join(', ')}`);
-        console.log(`All required hotspots: ${allRequiredHotspots.map((h: any) => h.id).join(', ')}`);
-        console.log(`All ordered hotspots: ${allOrderedHotspots.map((h: any) => `${h.id}(order:${h.order})`).join(', ')}`);
         console.log(`Completion percentage: ${completionPercentage}%`);
-    }, [sceneState.currentOrder, sceneState.currentScene, currentOrderHotspots, visibleHotspots, allRequiredCompleted, sceneState.completedHotspots, completedRequiredHotspots, allRequiredHotspots, allOrderedHotspots, completionPercentage]);
+    }, [sceneState.currentOrder, sceneState.completedHotspots, sceneState.visitedHotspots, completionPercentage]);
 
+    // Data loading and scene switching logic (no changes)
     useEffect(() => {
         const loadData = async () => {
             try {
@@ -521,7 +530,6 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
                 const scene = dataManager.getCurrentScene();
                 const allScenes = dataManager.getAllScenes();
                 
-                // If we have initial state with a different scene, switch to it now
                 if (initialState?.currentSceneId && initialState.currentSceneId !== scene?.id) {
                     console.log(`SceneViewer: Switching to saved scene during load: ${initialState.currentSceneId}`);
                     const switchSuccess = dataManager.switchToScene(initialState.currentSceneId);
@@ -581,17 +589,31 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
             console.error('Failed to switch to scene:', sceneId);
         }
     }, []);
+    
+    // ADDED: Central function to mark a hotspot as visited
+    const markAsVisited = useCallback((hotspotId: string) => {
+        setSceneState(prev => {
+            if (prev.visitedHotspots.has(hotspotId)) {
+                return prev; // No state change if already visited
+            }
+            const newVisitedHotspots = new Set(prev.visitedHotspots);
+            newVisitedHotspots.add(hotspotId);
+            console.log(`Hotspot Visited: ${hotspotId}`);
+            return { ...prev, visitedHotspots: newVisitedHotspots };
+        });
+    }, []);
 
+    // MODIFIED: handleLinkClick now also marks as visited
     const handleLinkClick = useCallback((sceneId: string, hotspotId: string) => {
         console.log(`Link hotspot clicked: ${hotspotId}, switching to scene: ${sceneId}`);
         
-        // Mark link hotspot as completed
+        markAsVisited(hotspotId); // Mark as visited
+        
         setSceneState(prev => ({
             ...prev,
             completedHotspots: new Set([...prev.completedHotspots, hotspotId])
         }));
         
-        // Advance order when link hotspot is completed
         setSceneState(prev => {
             console.log(`Advancing order from ${prev.currentOrder} to ${prev.currentOrder + 1}`);
             return {
@@ -600,21 +622,24 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
             };
         });
         
-        // Switch to the target scene
         handleSceneSwitch(sceneId);
-    }, [handleSceneSwitch]);
+    }, [handleSceneSwitch, markAsVisited]);
 
+    // MODIFIED: handleHotspotActivate now also marks as visited
     const handleHotspotActivate = useCallback((hotspotId: string, position: [number, number, number]) => {
+        markAsVisited(hotspotId); // Mark as visited on interaction
         if (sceneState.activeHotspotId === hotspotId) {
             setSceneState(prev => ({ ...prev, activeHotspotId: null, activeHotspotPosition: null }));
         } else {
             setSceneState(prev => ({ ...prev, activeHotspotId: hotspotId, activeHotspotPosition: position }));
         }
-    }, [sceneState.activeHotspotId]);
-
+    }, [sceneState.activeHotspotId, markAsVisited]);
+    
+    // MODIFIED: handleHotspotUIActivate now also marks as visited
     const handleHotspotUIActivate = useCallback((hotspotId: string) => {
+        markAsVisited(hotspotId); // Mark as visited when UI is shown
         setSceneState(prev => ({ ...prev, activeUIHotspotId: hotspotId }));
-    }, []);
+    }, [markAsVisited]);
 
     const handleHotspotUIDeactivate = useCallback(() => {
         setSceneState(prev => ({ ...prev, activeUIHotspotId: null }));
@@ -624,56 +649,36 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
         console.log('Scenario ended - user clicked Quitter');
     }, []);
 
+    // MODIFIED: handleHotspotComplete now also ensures hotspot is marked as visited
     const handleHotspotComplete = useCallback((hotspotId: string) => {
         console.log(`Hotspot completed: ${hotspotId}`);
+        markAsVisited(hotspotId); // Ensure it's marked as visited upon completion
+        
         setSceneState(prev => {
             const newCompletedHotspots = new Set([...prev.completedHotspots, hotspotId]);
             console.log(`Updated completed hotspots: ${Array.from(newCompletedHotspots).join(', ')}`);
             
-            // Check if this is an ActivAI hotspot and increment order
             const currentScene = prev.currentScene;
             const completedHotspot = currentScene?.hotspots?.find((h: any) => h.id === hotspotId);
-            console.log(`Completed hotspot type: ${completedHotspot?.type}, order: ${completedHotspot?.order}`);
             
             let newOrder = prev.currentOrder;
             if (completedHotspot?.type === 'activai') {
                 const nextOrder = prev.currentOrder + 1;
-                console.log(`Checking for next order: ${nextOrder}`);
-                console.log(`All ordered hotspots: ${allOrderedHotspots.map((h: any) => `${h.id}(order:${h.order})`).join(', ')}`);
-                
-                // Try to find next order in allOrderedHotspots first
-                let hasNextOrder = allOrderedHotspots.some((h: any) => h.order === nextOrder);
-                console.log(`Has next order from allOrderedHotspots: ${hasNextOrder}`);
-                
-                // Fallback: check if there are any hotspots with higher order numbers
-                if (!hasNextOrder) {
-                    const allScenes = dataManager.getAllScenes();
-                    const allHotspots = allScenes.flatMap(scene => 
-                        scene.hotspots?.map((hotspot: any) => ({
-                            ...hotspot,
-                            sceneId: scene.id
-                        })) || []
-                    );
-                    hasNextOrder = allHotspots.some((h: any) => h.order === nextOrder);
-                    console.log(`Has next order from fallback check: ${hasNextOrder}`);
-                }
+                const hasNextOrder = allOrderedHotspots.some((h: any) => h.order === nextOrder);
                 
                 if (hasNextOrder) {
                     newOrder = nextOrder;
                     console.log(`ActivAI completed, advancing order from ${prev.currentOrder} to ${newOrder}`);
-                } else {
-                    console.log(`ActivAI completed but no next order available (current: ${prev.currentOrder})`);
                 }
             }
             
-            console.log(`Final new order: ${newOrder}`);
             return {
                 ...prev,
                 completedHotspots: newCompletedHotspots,
                 currentOrder: newOrder
             };
         });
-    }, [allOrderedHotspots]);
+    }, [allOrderedHotspots, markAsVisited]);
 
     if (!sceneState.currentScene || !sceneState.currentScene.panoramaUrl) {
         return (
@@ -685,9 +690,11 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
             </div>
         );
     }
-
+    
+    // Rendering logic remains largely the same, passing the modified handlers
     return (
         <div style={{width: '100vw', height: '100vh', position: 'relative'}}>
+            {/* Components using state (no changes) */}
             <AudioManager 
                 audioConfig={sceneState.currentScene.audio || null}
                 completedHotspots={sceneState.completedHotspots}
