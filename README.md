@@ -180,9 +180,7 @@ The application uses inline styles for immediate visual feedback. Customize colo
 - Mobile optimization
 - Accessibility improvements
 
-## 📝 License
 
-This project is private and proprietary.
 
 ## 🤝 Contributing
 
