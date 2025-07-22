@@ -182,10 +182,4 @@ The application uses inline styles for immediate visual feedback. Customize colo
 
 
 
-## 🤝 Contributing
 
-This is a private project. For internal contributions, please follow the existing code style and add appropriate tests for new features.
-
-## 📞 Support
-
-For technical support or questions about the project, please contact the development team.
