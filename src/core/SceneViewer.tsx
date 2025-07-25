@@ -12,6 +12,7 @@ import IntroHotspot from '../hotspots/IntroHotspot';
 import QCUhotspot from '../hotspots/QCUhotspot';
 import QCMhotspot from '../hotspots/QCMhotspot';
 import StaticImg from '../hotspots/StaticImg';
+import DragAndDropActivity from '../hotspots/DragandDrop';
 import AudioManager from './AudioManager';
 import AudioControls from './AudioControls';
 
@@ -753,6 +754,21 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
                                 position={hotspot.position} 
                                 width={hotspot.width}
                                 height={hotspot.height}
+                            />
+                        );
+                    }
+                    if (hotspot.type === 'draganddrop') {
+                        return (
+                            <DragAndDropActivity
+                                key={hotspot.id}
+                                items={hotspot.items}
+                                targets={hotspot.targets}
+                                matchingPairs={hotspot.matchingPairs}
+                                instructionTexture={hotspot.instructionTexture}
+                                successTexture={hotspot.successTexture}
+                                instructionPosition={hotspot.instructionPosition}
+                                successPosition={hotspot.successPosition}
+                                lightConfig={hotspot.lightConfig}
                             />
                         );
                     }

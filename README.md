@@ -77,6 +77,7 @@ The application loads scene data from `public/complete-scene.json`. Each scene c
 3. **Scene Transition Hotspots**: Navigate to different scenes
 4. **Intro Hotspots**: Welcome messages with character images
 5. **ActivAI Hotspots**: AI-powered interactive feedback
+6. **Drag & Drop Hotspots**: Interactive drag-and-drop matching activities
 
 ## 📁 Project Structure
 
@@ -137,10 +138,26 @@ vieweroptimized/
         {
           "id": "hotspot-id",
           "title": "Hotspot Title",
-      "type": "info|question|link|intro",
+          "type": "info|question|link|intro",
           "position": [x, y, z],
           "size": 1.0,
           "text": "Hotspot content"
+        },
+        {
+          "id": "dragdrop1",
+          "type": "draganddrop",
+          "items": [
+            { "id": "item1", "position": [x1, y1, z1], "texture": "item1.png", "label": "Item 1" }
+          ],
+          "targets": [
+            { "id": "target1", "position": [x2, y2, z2], "rotation": [0, 0, 0], "texture": "target1.png", "label": "Target 1", "snapOffset": [0, 0, 0] }
+          ],
+          "matchingPairs": { "item1": "target1" },
+          "instructionTexture": "instructions.png",
+          "successTexture": "success.png",
+          "instructionPosition": [0, 7, 0],
+          "successPosition": [0, 6, 0],
+          "lightConfig": { "ambientIntensity": 0.8, "pointPosition": [0, 8, 8], "pointIntensity": 1 }
         }
       ]
     }
@@ -179,6 +196,4 @@ The application uses inline styles for immediate visual feedback. Customize colo
 - Analytics and progress tracking
 - Mobile optimization
 - Accessibility improvements
-
-
 
