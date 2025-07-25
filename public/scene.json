@@ -1,0 +1,12 @@
+{
+  "image": "/vite.svg",
+  "hotspots": [
+    {
+      "x": 0,
+      "y": 0,
+      "width": 150,
+      "height": 150,
+      "action": "You clicked the top-left hotspot!"
+    }
+  ]
+}
