@@ -1,0 +1,12 @@
+{
+  "scenes": [
+    {
+      "id": "sample-scene",
+      "title": "Sample Scene",
+      "panoramaUrl": "/scene/sample.jpg",
+      "sphereRadius": 3,
+      "audio": null,
+      "hotspots": []
+    }
+  ]
+}

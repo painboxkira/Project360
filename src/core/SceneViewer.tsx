@@ -14,7 +14,6 @@ import QCMhotspot from '../hotspots/QCMhotspot';
 import StaticImg from '../hotspots/StaticImg';
 import AudioManager from './AudioManager';
 import AudioControls from './AudioControls';
-import Layout from '../hotspots/ActiveAi/Rapport/Layout';
 
 // SmoothCameraRotation component (no changes)
 const SmoothCameraRotation = ({ targetPosition, isActive, orbitControlsRef }: {
@@ -288,37 +287,6 @@ const LinkHotspotWithLookat = ({
     );
 };
 
-const ActivAIHotspotWithLookat = ({ 
-    position, 
-    slug,
-    isVisible,
-    onComplete
-}: {
-    position: [number, number, number];
-    slug: string;
-    isVisible: boolean;
-    onComplete: () => void;
-}) => {
-    const groupRef = useRef<THREE.Group>(null);
-    const { camera } = useThree();
-
-    useFrame(() => {
-        if (groupRef.current && camera) {
-            groupRef.current.lookAt(camera.position);
-        }
-    });
-
-    return (
-        <group ref={groupRef} position={position}>
-            <Layout 
-                slug={slug}
-                position={[0, 0, 0]}
-                isVisible={isVisible}
-                onQuit={onComplete}
-            />
-        </group>
-    );
-};
 
 // MODIFIED: Updated prop definitions
 const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: { 
@@ -393,8 +361,7 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
 
         return allHotspots.filter((hotspot: any) => 
             hotspot.required === true || 
-            (hotspot.type === 'question' && (hotspot.subtype === 'qcu' || hotspot.subtype === 'qcm')) ||
-            hotspot.type === 'activai'
+            (hotspot.type === 'question' && (hotspot.subtype === 'qcu' || hotspot.subtype === 'qcm'))
         );
     }, [sceneState.currentScene]);
 
@@ -414,9 +381,10 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
         return sceneState.currentScene.hotspots?.filter((hotspot: any) => {
             if (hotspot.order === undefined || hotspot.order === -1) return true;
             
-            if (hotspot.type === 'info' || 
-                (hotspot.type === 'question' && (hotspot.subtype === 'qcu' || hotspot.subtype === 'qcm')) ||
-                hotspot.type === 'activai') {
+            if (
+                hotspot.type === 'info' || 
+                (hotspot.type === 'question' && (hotspot.subtype === 'qcu' || hotspot.subtype === 'qcm'))
+            ) {
                 return hotspot.order <= sceneState.currentOrder;
             }
             
@@ -428,8 +396,7 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
     const allRequiredCompleted = useMemo(() => {
         const requiredHotspots = currentOrderHotspots.filter((hotspot: any) => 
             hotspot.required === true || 
-            (hotspot.type === 'question' && (hotspot.subtype === 'qcu' || hotspot.subtype === 'qcm')) ||
-            hotspot.type === 'activai'
+            (hotspot.type === 'question' && (hotspot.subtype === 'qcu' || hotspot.subtype === 'qcm'))
         );
         
         return requiredHotspots.length === 0 || 
@@ -655,27 +622,13 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
         markAsVisited(hotspotId); // Ensure it's marked as visited upon completion
         
         setSceneState(prev => {
-            const newCompletedHotspots = new Set([...prev.completedHotspots, hotspotId]);
+            const newCompletedHotspots = new Set(prev.completedHotspots);
+            newCompletedHotspots.add(hotspotId);
             console.log(`Updated completed hotspots: ${Array.from(newCompletedHotspots).join(', ')}`);
-            
-            const currentScene = prev.currentScene;
-            const completedHotspot = currentScene?.hotspots?.find((h: any) => h.id === hotspotId);
-            
-            let newOrder = prev.currentOrder;
-            if (completedHotspot?.type === 'activai') {
-                const nextOrder = prev.currentOrder + 1;
-                const hasNextOrder = allOrderedHotspots.some((h: any) => h.order === nextOrder);
-                
-                if (hasNextOrder) {
-                    newOrder = nextOrder;
-                    console.log(`ActivAI completed, advancing order from ${prev.currentOrder} to ${newOrder}`);
-                }
-            }
-            
+
             return {
                 ...prev,
-                completedHotspots: newCompletedHotspots,
-                currentOrder: newOrder
+                completedHotspots: newCompletedHotspots
             };
         });
     }, [allOrderedHotspots, markAsVisited]);
@@ -804,21 +757,6 @@ const SceneViewer = ({ jsonPath, onOrderUpdate, initialState }: {
                         );
                     }
 
-                    if (hotspot.type === 'activai') {
-                        return (
-                            <CameraFacingHotspot 
-                                key={hotspot.id}
-                                scale={[hotspot.size || 1, hotspot.size || 1, hotspot.size || 1]}
-                            >
-                                <Layout 
-                                    slug={hotspot.slug}
-                                    position={[0, 0.2, -2]}
-                                    isVisible={true}
-                                    onQuit={() => handleHotspotComplete(hotspot.id)}
-                                />
-                            </CameraFacingHotspot>
-                        );
-                    }
 
                     return null;
                 })}

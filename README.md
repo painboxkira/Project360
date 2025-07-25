@@ -137,7 +137,7 @@ vieweroptimized/
         {
           "id": "hotspot-id",
           "title": "Hotspot Title",
-          "type": "info|question|link|intro|activai",
+      "type": "info|question|link|intro",
           "position": [x, y, z],
           "size": 1.0,
           "text": "Hotspot content"
@@ -179,7 +179,6 @@ The application uses inline styles for immediate visual feedback. Customize colo
 - Analytics and progress tracking
 - Mobile optimization
 - Accessibility improvements
-
 
 
 
